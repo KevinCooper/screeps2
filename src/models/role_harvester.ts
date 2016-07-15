@@ -1,7 +1,7 @@
 /// <reference path="./../_reference.ts" />
 
 import {ProtoRole} from "./proto_role";
-import {myRoom} from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
 
 export class Harvester extends ProtoRole {
 
@@ -12,6 +12,8 @@ export class Harvester extends ProtoRole {
 
     public onSpawn() {
         let creep = this.creep;
+        let room = this.room;
+
         creep.memory.id = creep.id;
 
         let source: Source = this.getClosest(FIND_SOURCES_ACTIVE, undefined);
@@ -19,17 +21,15 @@ export class Harvester extends ProtoRole {
 
         creep.memory.source = source.id;
         creep.memory.spawn = spawn.id;
-        creep.room.memory.suppliers[creep.id] = {
-            supplyPerTick : creep.getActiveBodyparts (WORK) * 2,
-        };
+        room._memory.info.suppliers += 1;
+        room._memory.info.supplyEnergy += creep.getActiveBodyparts(WORK) * 2;
     }
 
     public onDeath() {
         let creep = this.creep;
-        let spawn: Spawn = Game.getObjectById<Spawn>(this.creep.memory.spawn);
-        if (spawn) {
-            delete spawn.room.memory.suppliers[creep.id];
-        }
+        let room = this.room;
+        room._memory.info.suppliers -= 1;
+        room._memory.info.supplyEnergy -= creep.getActiveBodyparts(WORK) * 2;
     }
 
     public action() {

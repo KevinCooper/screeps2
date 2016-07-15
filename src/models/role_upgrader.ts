@@ -1,7 +1,8 @@
 /// <reference path="./../_reference.ts" />
+import util = require("./../util/util");
 
 import {ProtoRole} from "./proto_role";
-import {myRoom} from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
 
 function isSpawn (structure) {
     return structure.type === STRUCTURE_SPAWN;
@@ -15,6 +16,7 @@ export class Upgrader extends ProtoRole {
 
     public onSpawn() {
         let creep = this.creep;
+        let room = this.room;
         creep.memory.is = creep.id;
 
         if (creep.room.controller) {
@@ -29,44 +31,40 @@ export class Upgrader extends ProtoRole {
         }
 
         creep.memory.spawn = spawn.id;
-        creep.room.memory.upgraders[creep.id] = {
-            upgradePerTick : creep.getActiveBodyparts(WORK) * 2,
-        };
-
-        creep.room.memory.consumers[creep.id] = {
-            consumptionPerTick : creep.getActiveBodyparts(WORK) * 2,
-        };
+        room._memory.info.upgraders += 1;
+        room._memory.info.upgradeEnergy += creep.getActiveBodyparts(WORK) * 2;
     }
 
     public onDeath() {
         let creep = this.creep;
         let spawn = Game.getObjectById<Spawn>(creep.memory.spawn);
-
-        delete spawn.room.memory.upgraders[creep.id];
-        delete spawn.room.memory.consumers[creep.id];
+        let room = this.room;
+        room._memory.info.upgraders -= 1;
+        room._memory.info.upgradeEnergy -= creep.getActiveBodyparts(WORK) * 2;
     }
 
     public action() {
         let creep = this.creep;
 
         let controller = Game.getObjectById<Controller>(creep.memory.controller);
-        let spawn = Game.getObjectById<Spawn>(creep.memory.spawn);
-
+        //let spawn = Game.getObjectById<Spawn>(creep.memory.spawn);
+        let pickup = util.getPickupPoint(creep.room);
         let tempRoom = new myRoom(creep.room);
         if (tempRoom.underAttack) {
             if (creep.carry.energy > 0) {
-                this.moveAndPerform(spawn, creep.transfer)
+                this.moveAndPerform(pickup, creep.transfer)
             } else {
                 this.keepAwayFromEnemies();
             }
         } else {
-            if (creep.room.memory.miners < creep.room.memory.sources) {
+            if (tempRoom._memory.info.miners < tempRoom._memory.info.numSources) {
                 this.rest(true);
             } else if (creep.carry.energy > 0) {
                 this.moveAndPerform(controller, creep.upgradeController);
             } else {
-                this.moveTo(spawn);
-                spawn.transferEnergy(creep);
+                this.moveTo(pickup);
+                creep.withdraw(pickup, RESOURCE_ENERGY, creep.carryCapacity)
+                //spawn.transferEnergy(creep);
             }
         }
     }

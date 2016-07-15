@@ -1,7 +1,9 @@
 /// <reference path="./../_reference.ts" />
+import util = require("./../util/util");
 
 import {ProtoRole} from "./proto_role";
-import {myRoom} from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
+
 
 function isSpawn (structure) {
     return structure.type === STRUCTURE_SPAWN;
@@ -15,16 +17,18 @@ export class Builder extends ProtoRole {
 
     public onSpawn() {
         let creep = this.creep;
-        creep.room.memory.consumers[creep.id] = {
-            consumptionPerTick : creep.getActiveBodyparts(WORK) * 2,
-        };
+        let room = this.room;
+        room._memory.info.consumers += 1;
+        room._memory.info.consumerEnergy += creep.getActiveBodyparts(WORK) * 2;
 
     }
 
     public onDeath() {
         let creep = this.creep;
-        let spawn: Spawn = Game.getObjectById<Spawn>(this.creep.memory.spawn);
-        delete spawn.room.memory.consumers[creep.id];
+        let room = this.room;
+        room._memory.info.consumers -= 1;
+        room._memory.info.consumerEnergy -= creep.getActiveBodyparts(WORK) * 2;
+
 
     }
 
@@ -42,14 +46,15 @@ export class Builder extends ProtoRole {
             }
             return;
         }
-        if (creep.room.memory.miners < creep.room.memory.sources) {
+        if (tempRoom._memory.info.miners < tempRoom._memory.info.numSources) {
             this.rest(true);
         } else if (creep.carry.energy === 0) {
             let closestSpawn = this.findClosestSpawn();
+            let pickup = util.getPickupPoint(creep.room);
             if (closestSpawn) {
-                this.moveTo(closestSpawn);
+                this.moveTo(pickup);
                 // closestSpawn.transferEnergy(creep);
-                creep.withdraw(closestSpawn, RESOURCE_ENERGY, this.creep.carryCapacity);
+                creep.withdraw(pickup, RESOURCE_ENERGY, this.creep.carryCapacity);
             }
         } else {
             let structures = tempRoom.myStructures;

@@ -1,7 +1,7 @@
 /// <reference path="./../_reference.ts" />
 
 import * as cc from "./../util/calc_cost";
-import {myRoom} from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
 import util = require("./../util/util");
 let MAX_PARTS = 30;
 let ROUTE_CACHE_CLEANING_INTERVAL = 10;
@@ -31,6 +31,10 @@ export class ProtoRole {
 
     public setCreep(creep: Creep) {
         this.creep = creep;
+    }
+
+    get room(){
+        return new myRoom(this.creep.room);
     }
 
     public run() {

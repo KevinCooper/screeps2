@@ -65,11 +65,10 @@ export class Miner extends ProtoRole {
 
     public onSpawn() {
         let creep: Creep = this.creep;
+        let room = this.room;
+        
         creep.memory.isNearSource = false;
         creep.memory.helpers = [];
-
-        creep.memory.minedPerTick = creep.getActiveBodyparts (WORK) * WORK_EFFICIENCY;
-        creep.room.memory.miners += 1;
 
         let source: Source = this.getOpenSource();
         if (source) {
@@ -77,12 +76,17 @@ export class Miner extends ProtoRole {
             this.setSourceToMine (source);
         } else {
             console.log ("No open sources!");
+            creep.suicide();
         }
+
+        room._memory.info.miners += 1;
     }
 
     public onDeath() {
         let creep: Creep = this.creep;
-        creep.room.memory.miners -= 1;
+        let room = this.room;
+
+        room._memory.info.miners -= 1;
         if (creep.memory.source !== undefined){
             let source = Game.getObjectById<Source>(creep.memory.source);
             if (source) {

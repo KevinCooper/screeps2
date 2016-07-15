@@ -1,95 +1,13 @@
 /// <reference path="./../_reference.ts" />
 import util = require("./../util/util");
+import {myRoom} from "./../models/my_room";
 
 let DEFENDERS_PER_HEALER: number = 3;
 let CIVILIANS_PER_HEALER: number = 5;
 
-let CONSTRUCTION_SITES_PER_BUILDER : number = 3;
+let MAX_BUILDERS: number = 4;
+let CONSTRUCTION_SITES_PER_BUILDER: number = 3;
 let UPGRADERS_REQUIRED: number = 2;
-
-export class myRoom {
-    private _creeps: Creep[] = [];
-    private _myCreeps: Creep[] = [];
-    private _hostileCreeps: Creep[] = [];
-    private _defenders: Creep[] = [];
-    private _scavengers: Creep[] = [];
-    private _myDamagedCreeps: Creep[] = [];
-    private _myStructures: Structure[] = [];
-    private _spawns: Spawn[] = [];
-    private _constructionSites: ConstructionSite[] = [];
-    private _sourcesActive: Source[] = [];
-    private _droppedEnergy: Resource[] = [];
-    private _underAttack: boolean;
-    private _room: Room;
-    public constructor(room: Room) {
-        this._room = room;
-        if (!this._room.memory.suppliers) {
-            this._room.memory.suppliers = {};
-        }
-        if (!this._room.memory.consumers) {
-            this._room.memory.consumers = {};
-        }
-        if (!this._room.memory.upgraders) {
-            this._room.memory.upgraders = {};
-        }
-    }
-    get creeps(): Creep[] {
-        this._creeps  = this._room.find<Creep>(FIND_CREEPS);
-        return this._creeps;
-    }
-    get room(): Room {
-        return this._room;
-    }
-    get memory(){
-        return this._room.memory;
-    }
-    get myCreeps(): Creep[]{
-        this._myCreeps = this._room.find<Creep>(FIND_MY_CREEPS);
-        return this._myCreeps;
-    }
-    get hostileCreeps(){
-        this._hostileCreeps = this._room.find<Creep>(FIND_HOSTILE_CREEPS);
-        return this._hostileCreeps;
-    }
-    get defenders(){
-        this._defenders = this.myCreeps.filter(util.isDefender);
-        return this._defenders;
-    }
-    get scavengers(){
-        this._scavengers = this.myCreeps.filter(util.isScavenger);
-        return this._scavengers;
-    }
-    get myDamagedCreeps(){
-        this._myDamagedCreeps = this.myCreeps.filter(util.isDamaged);
-        return this._myDamagedCreeps;
-    }
-    get myStructures(){
-        this._myStructures = this._room.find<Structure>(FIND_MY_STRUCTURES);
-        return this._myStructures;
-    }
-    get mySpawns(){
-        this._spawns = this._room.find<Spawn>(FIND_MY_SPAWNS);
-        return this._spawns;
-    }
-    get constructionSites(){
-        this._constructionSites = this._room.find<ConstructionSite>(FIND_CONSTRUCTION_SITES);
-        return this._constructionSites;
-    }
-    get sourcesActive(){
-        this._sourcesActive = this._room.find<Source>(FIND_SOURCES_ACTIVE);
-        return this._sourcesActive;
-    }
-    get droppedEnergy(){
-        this._droppedEnergy = this._room.find<Resource>(FIND_DROPPED_RESOURCES);
-        return this._droppedEnergy;
-    }
-    get underAttack(){
-        this._underAttack = this.hostileCreeps.filter(util.notSourceKeeper).length > 0;
-        return this._underAttack;
-    }
-}
-
-
 
 export class RoomManager {
     private _energySupply: number;
@@ -98,7 +16,8 @@ export class RoomManager {
     private MIN_SUPPLY: number = 4;
     private neededSupply: number = 20;
 
-    constructor() {
+    constructor(room: Room) {
+        this.room = new myRoom(room);
         this.needs = {
             creeps : [],
             energy : 0,
@@ -117,31 +36,14 @@ export class RoomManager {
         }
     }
 
-    get enerySupply() : number{
-        if (!this._energySupply) {
-            this._energySupply = 0;
-            for (let i in this.room.memory.suppliers) {
-                this._energySupply += this.room.memory.suppliers[i].supplyPerTick;
-            }
-            for (let i in this.room.memory.consumers) {
-                this._energySupply -= this.room.memory.consumers[i].consumptionPerTick;
-            }
-        }
-        this.room.memory._energySupply = this._energySupply;
-        return this._energySupply;
-    }
-
-    public set setRoom(room : Room){
-        if (room) {
-            let test = new myRoom(room);
-            this.room = test;
-        }else {
-            this.room = null;
-        }
+    get enerySupply(): number{
+          return this.room._memory.info.supplyEnergy -
+            this.room._memory.info.consumerEnergy -
+            this.room._memory.info.upgradeEnergy;
     }
 
     public initMemory() {
-        let room : myRoom = this.room;
+        let room: myRoom = this.room;
         if (!room.memory.initialized)
         {
 
@@ -165,7 +67,8 @@ export class RoomManager {
                         energy : 0,
                     };
         // Minimum reached, now we need non-suppliers
-        if ((this.enerySupply >= this.MIN_SUPPLY && this.room.memory.miners >= this.room.memory.sources ) || this.room.underAttack) {
+        if ((this.enerySupply >= this.MIN_SUPPLY && this.room._memory.info.miners >= 
+            this.room._memory.info.numSources ) || this.room.underAttack) {
             // this.updateNeedsDefenders ();
             // this.updateNeedsHealers ();
             // this.updateNeedsScavengers ();
@@ -210,20 +113,18 @@ export class RoomManager {
         let constrSites = room.constructionSites.length;
         let neededBuilders = Math.ceil(constrSites / CONSTRUCTION_SITES_PER_BUILDER) - builders.length;
         if ( builders.length < 5) {
-            for (let i = 0; i < neededBuilders; i ++) {
-                this.needs.creeps.push(
-                    {
-                        role : "builder",
-                        memory : {},
-                    }
-                );
-            }
+            this.needs.creeps.push(
+                {
+                    role : "builder",
+                    memory : {},
+                }
+            );
         }
     }
 
     public updateNeedsUpgraders() {
-        let neededUpgraders = UPGRADERS_REQUIRED - Object.keys(this.room.memory.upgraders).length;
-        for (let i = 0; i < neededUpgraders; i++) {
+        let neededUpgraders = UPGRADERS_REQUIRED - this.room._memory.info.upgraders;
+        if (neededUpgraders > 0) {
             this.needs.creeps.push(
                 {
                     role : "upgrader",
@@ -248,7 +149,7 @@ export class RoomManager {
     public updateNeedsHealers() {
         let room = this.room;
         let healers = room.myCreeps.filter(util.isHealer);
-        let neededHealers = Math.floor(this.room.defenders.length / DEFENDERS_PER_HEALER) - healers.length;
+        let neededHealers = Math.floor(room.defenders.length / DEFENDERS_PER_HEALER) - healers.length;
 
         if (neededHealers <= 0) {
             neededHealers = Math.ceil (room.myDamagedCreeps.length / CIVILIANS_PER_HEALER) - healers.length;
@@ -266,12 +167,12 @@ export class RoomManager {
 
     public updateNeedsSuppliers() {
         let neededRole = "miner";
-        if (this.enerySupply <= 0) {
+        if (this.room._memory.info.supplyEnergy <= 0) {
             neededRole = "harvester";
         }
-        let numMiners = this.room.memory.miners;
-        let numSources = this.room.memory.sources;
-        if ((this.enerySupply < this.neededSupply) || (numMiners < numSources && this.needs.creeps.length < 1)) {
+        let numMiners = this.room._memory.info.miners;
+        let numSources = this.room._memory.info.numSources;
+        if (numMiners < numSources) {
             this.needs.creeps.push(
                 {
                     role : neededRole,

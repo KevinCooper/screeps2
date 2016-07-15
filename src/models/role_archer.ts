@@ -1,7 +1,7 @@
 /// <reference path="./../_reference.ts" />
 
 import {ProtoRole} from "./proto_role";
-import {myRoom} from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
 
 export class Archer extends ProtoRole {
     constructor() {

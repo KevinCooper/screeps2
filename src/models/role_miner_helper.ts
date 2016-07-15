@@ -1,7 +1,7 @@
 /// <reference path="./../_reference.ts" />
 
 import {ProtoRole} from "./proto_role";
-import {myRoom} from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
 import util = require("./../util/util");
 /**
  * This guy just finds a source, and stays near it. His job is just to mine away and let the energy fall on the ground
@@ -85,13 +85,14 @@ export class MinerHelper extends ProtoRole {
 
     public assignMiner() {
         let creep: Creep = this.creep;
+        let room = this.room;
         let miner: Creep = this.getClosest(FIND_CREEPS, {filter : this.isMinerNeedingHelpers});
         if (!miner) {
             return;
         }
-        let spawn = Game.getObjectById<Spawn>(creep.memory.spawn);
         this.miner = miner;
-        spawn.room.memory.suppliers [creep.id] = { supplyPerTick: miner.memory.minedPerTick };
+        room._memory.info.suppliers += 1;
+        room._memory.info.supplyEnergy += creep.getActiveBodyparts(CARRY) * 2;
     }
 
     public onSpawn() {
@@ -105,10 +106,9 @@ export class MinerHelper extends ProtoRole {
 
     public onDeath() {
         let creep: Creep = this.creep;
-        let spawn: Spawn = Game.getObjectById<Spawn>(this.creep.memory.spawn);
-        console.log(spawn.room.memory.suppliers[creep.id]);
-        spawn.room.memory.suppliers[creep.id] = null;
-        delete spawn.room.memory.suppliers[creep.id];
+        let room = this.room;
+        room._memory.info.suppliers -= 1;
+        room._memory.info.supplyEnergy -= creep.getActiveBodyparts(CARRY) * 2;
         if (creep.memory.miner) {
             let miner = Game.getObjectById<Creep>(creep.memory.miner);
             if (miner) {
@@ -187,7 +187,8 @@ export class MinerHelper extends ProtoRole {
             if (target) {
                 if (creep.pos.isNearTo(target)) {
                     let notFull: boolean;
-                    if (target.structureType === "spawn" || target.structureType === "extension" || target.structureType === "tower" ) {
+                    if (target.structureType === "spawn" || target.structureType === "extension" ||
+                                                            target.structureType === "tower" ) {
                         let target2 = <Spawn | Extension | Tower> target;
                         notFull = target2.energy < target2.energyCapacity;
                     }else {

@@ -1,6 +1,7 @@
 /// <reference path="./../_reference.ts" />
 
 import * as rm from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
 
 export function getBlueprintCost(blueprint: string[]) {
     return _.sum(blueprint.map(bodyPart => BODYPART_COST[bodyPart]));
@@ -48,15 +49,15 @@ export function reversePath(path: PathStep[]) {
     * @returns {Structure}
     */
   export function getStorageObject(room: Room): Structure {
-    let myRoom: rm.myRoom = new rm.myRoom(room);
-    let targets: Structure[] = myRoom.myStructures.filter((structure: StructureContainer) => {
+    let tempRoom = new myRoom(room);
+    let targets: Structure[] = tempRoom.myStructures.filter((structure: StructureContainer) => {
       return ((structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_STORAGE)
         && _.sum(structure.store) < structure.storeCapacity);
     });
 
     // if we can't find any storage containers, use either the extension or spawn.
     if (targets.length === 0) {
-      targets = myRoom.myStructures.filter((structure: StructureExtension) => {
+      targets = tempRoom.myStructures.filter((structure: StructureExtension) => {
         return ((structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN) &&
           structure.energy < structure.energyCapacity);
       });
@@ -73,45 +74,73 @@ export function reversePath(path: PathStep[]) {
    * @returns {Structure}
    */
   export function getDropOffPoint(room: Room): Spawn | Container | Storage | Extension | Tower {
-    let myRoom: rm.myRoom = new rm.myRoom(room);
-    let targets: Spawn[] | Container[] | Storage[] | Extension[] = <Spawn []> myRoom.myStructures.filter((structure) => {
-      if (structure instanceof Spawn) {
-        return ((structure.structureType === STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity);
-      }
+    let tempRoom: myRoom = new myRoom(room);
+    let targets: Spawn[] | Container[] | Storage[] | Extension[];
+    targets = <Spawn []> tempRoom.myStructures.filter((structure) => {
+        return ((structure.structureType == STRUCTURE_SPAWN) &&
+               (<Spawn> structure).energy < (<Spawn> structure).energyCapacity);
     });
-
     // If the spawn is full, we'll find any extensions/towers.
-    if (targets.length === 0) {
-      targets = <Extension []> myRoom.myStructures.filter((structure) => {
-        if (structure instanceof StructureExtension) {
-          return ((structure.structureType === STRUCTURE_EXTENSION)
-            && structure.energy < structure.energyCapacity);
-        }
+    if (targets.length == 0) {
+      targets = <Extension []> tempRoom.myStructures.filter((structure) => {
+          return ((structure.structureType == STRUCTURE_EXTENSION)
+            && (<Extension>structure).energy < (<Extension>structure).energyCapacity);
       });
     }
 
     // Or if that's filled as well, look for towers.
-    if (targets.length === 0) {
-      targets = <Tower []> myRoom.myStructures.filter((structure: StructureTower) => {
-        return ((structure.structureType === STRUCTURE_TOWER)
+    if (targets.length == 0) {
+      targets = <Tower []> tempRoom.myStructures.filter((structure: StructureTower) => {
+        return ((structure.structureType == STRUCTURE_TOWER)
           && structure.energy < structure.energyCapacity - (structure.energyCapacity * 0.5));
       });
     }
 
     // Or, look for containers.
-    if (targets.length === 0) {
-      targets = <Container []> myRoom.myStructures.filter((structure: StructureStorage) => {
-        return ((structure.structureType === STRUCTURE_CONTAINER) && _.sum(structure.store) < structure.storeCapacity);
+    if (targets.length == 0) {
+      targets = <Container []> tempRoom.myStructures.filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) < structure.storeCapacity);
       });
     }
     // Otherwise, look for storage.
-    if (targets.length === 0) {
-      targets = <Storage []> myRoom.myStructures.filter((structure: StructureStorage) => {
-        return ((structure.structureType === STRUCTURE_STORAGE) && _.sum(structure.store) < structure.storeCapacity);
+    if (targets.length == 0) {
+      targets = <Storage []> tempRoom.myStructures.filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_STORAGE) && _.sum(structure.store) < structure.storeCapacity);
       });
     }
     return targets[0];
   }
+
+  /**
+   * Get the first energy dropoff point available. This prioritizes the spawn,
+   * falling back on extensions, then towers, and finally containers.
+   *
+   * @export
+   * @returns {Structure}
+   */
+  export function getPickupPoint(room: Room): Spawn | Container | Storage | Extension  {
+    let tempRoom: myRoom = new myRoom(room);
+    let targets: Spawn[] | Container[] | Storage[] | Extension[];
+    targets = <Storage []> tempRoom.myStructures.filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_STORAGE) && _.sum(structure.store) > 0);
+      });
+
+      // Or, look for containers.
+    if (targets.length == 0) {
+      targets = <Container []> tempRoom.myStructures.filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) > 0);
+      });
+    };
+
+    // Otherwise, look for Spawn.
+    if (targets.length == 0) {
+      targets = <Spawn []> tempRoom.myStructures.filter((structure) => {
+        return ((structure.structureType == STRUCTURE_SPAWN) &&
+               (<Spawn> structure).energy > 0);
+        });
+    }
+    return targets[0];
+  }  
 export function isDefender (creep: Creep): boolean {
   // If has offensive bodyparts && has an appropriate role
     return (creep.memory.role === "archer"

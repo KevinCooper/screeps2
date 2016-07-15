@@ -5,7 +5,7 @@
 
 
 import * as manager from "./../managers/role_manager";
-import {myRoom} from "./../managers/room_manager";
+import {myRoom} from "./../models/my_room";
 import * as rm from "./../managers/room_manager";
 import * as cc from "./calc_cost";
 /** 
@@ -29,11 +29,11 @@ export function getNameByRole (spawn: Spawn, role: string): string {
  */
 function getTotalEnergy (spawn: Spawn) {
     let room: Room = spawn.room;
-    let myRoom: myRoom = new rm.myRoom(room);
-    let totalEnergy = myRoom.room.energyAvailable;
+    let tempRoom: myRoom = new myRoom(room);
+    let totalEnergy = tempRoom.room.energyAvailable;
     let otherSpawns;
-    if (myRoom.mySpawns) {
-        otherSpawns = myRoom.mySpawns.filter(function (otherSpawn)
+    if (tempRoom.mySpawns) {
+        otherSpawns = tempRoom.mySpawns.filter(function (otherSpawn)
         {
             return otherSpawn !== spawn;
         });
@@ -90,7 +90,7 @@ function spawnNeededCreep (spawn: Spawn ) {
     // Creation process started successfully
     if (spawnCreep(needed[0].role, needed[0].memory, spawn)) {
         console.log(needed[0].role + ":  Spawn successful!");
-        (<Array<{}>> needed).shift();
+        (<Array<{}>> needed).pop();
     }
 }
 
