@@ -1,14 +1,15 @@
 "use strict";
 
 var gulp = require('gulp');
-var tsproject = require( 'tsproject' );
+var webpack = require('webpack-stream');
 var https = require('https');
 var fs = require('fs');
 var secrets = require('./secrets.js');
 
 gulp.task('compile', function () {
-    return tsproject.src( './tsconfig.json')
-        .pipe(gulp.dest('./dist'));
+    return gulp.src('src/entry.js')
+        .pipe(webpack( require('./webpack.config.js') ))
+        .pipe(gulp.dest('dist/'));
 });
 
 gulp.task('upload-sim', ['compile'], function () {

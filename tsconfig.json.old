@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "noResolve": false,
+    "noImplicitAny": false
+   // "outFile": "main.js"
+  },
+
+  "files": ["./src/**/*.ts", "./typings/**/*.ts", "node_modules/screeps-typescript-declarations/dist/screeps.d.ts"],
+
+  "bundles": {
+    "main": {
+      "files": [
+        "./src/boot/main.ts"
+      ]
+    }
+  }
+}

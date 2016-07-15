@@ -1,18 +1,10 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "noResolve": false,
-    "noImplicitAny": false
-  },
-
-  "files": ["./src/**/*.ts", "./typings/**/*.ts", "node_modules/screeps-typescript-declarations/dist/screeps.d.ts"],
-
-  "bundles": {
-    "main": {
-      "files": [
-        "./src/boot/main.ts"
-      ]
-    }
-  }
+    "compilerOptions": {
+	"module": "commonjs",
+	"target": "es6",
+	"sourceMap": false,
+	"declaration": false,
+	"outDir": "./dist"
+    },
+    "exclude": ["node_modules", "dist"]
 }
