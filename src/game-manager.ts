@@ -31,7 +31,7 @@ export namespace GameManager {
     }
 
     export function loop() {
-        // Loop code starts here
+        // Loop code starts here.
         // This is executed every tick
         console.log("SUIT UP my creeps!");
 
@@ -39,7 +39,7 @@ export namespace GameManager {
         // Let's assume we have a creep, who is called "Argos". We can do something like this:
         var harvester = new Harvester();
         harvester.setCreep(Game.creeps["Argos"]);
-        harvester.tryHarvest(Game.creeps["Argos"].room.find(FIND_SOURCES_ACTIVE)[0]);
+        harvester.tryHarvest(Game.creeps["Argos"].room.find<Source>(FIND_SOURCES_ACTIVE)[0]);
     }
 
 }
