@@ -1,0 +1,31 @@
+{
+  "name": "ScreepsTypescript",
+  "version": "0.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "scripts": {
+    "postinstall": "./node_modules/.bin/tsd install",
+    "start": "./node_modules/.bin/gulp watch"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "devDependencies": {
+    "gulp": "~3.9.1",
+    "tsproject": "~1.2.1",
+    "tsd": "~0.6.5"
+  },
+  "dependencies": {
+    "gulp": "~3.9.1",
+    "gulp-webpack": "^1.5.0",
+    "recursive-readdir": "^2.0.0",
+    "requirejs": "^2.2.0",
+    "screeps-typescript-declarations": "^4.2.0",
+    "ts-loader": "^0.8.2",
+    "tsd": "~0.6.5",
+    "tslint": "^3.13.0",
+    "tsproject": "~1.2.0-rc.6",
+    "typescript": "^1.8.10",
+    "typescript-require": "^0.2.9-1",
+    "webpack-typescript": "^0.5.6"
+  }
+}
