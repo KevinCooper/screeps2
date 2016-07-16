@@ -15,7 +15,11 @@ export class Archer extends ProtoRole {
             this.rangedAttack(target);
             this.kite(target);
         }else {
-            this.rest(false);
+            //if (Game.flags["capture"]) {
+            //    this.creep.moveTo(Game.flags["capture"])
+            //} else {
+                this.rest(false);
+            //}
         }
     }
 }

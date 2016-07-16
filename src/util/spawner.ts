@@ -31,7 +31,7 @@ function getTotalEnergy (spawn: Spawn) {
     let room: Room = spawn.room;
     let tempRoom: myRoom = new myRoom(room);
     let totalEnergy = tempRoom.room.energyAvailable;
-    let otherSpawns;
+    let otherSpawns: Spawn[];
     if (tempRoom.mySpawns) {
         otherSpawns = tempRoom.mySpawns.filter(function (otherSpawn)
         {
@@ -40,7 +40,7 @@ function getTotalEnergy (spawn: Spawn) {
     }
     if (otherSpawns && otherSpawns.length) {
         for (let i in otherSpawns) {
-            totalEnergy -= otherSpawns [i].energy;
+            totalEnergy -= otherSpawns[i].energy;
         }
     }
 
@@ -83,14 +83,14 @@ function spawnNeededCreep (spawn: Spawn ) {
     let needed = spawn.room.memory.needs.creeps;
     // Nothing to create, queue's empty
     if (!needed || !needed.length) {
-        console.log ("Room's needs queue is empty! Idling...");
+        //console.log ("Room's needs queue is empty! Idling...");
         return;
     }
 
     // Creation process started successfully
     if (spawnCreep(needed[0].role, needed[0].memory, spawn)) {
         console.log(needed[0].role + ":  Spawn successful!");
-        (<Array<{}>> needed).pop();
+        (<Array<{}>> needed).shift();
     }
 }
 

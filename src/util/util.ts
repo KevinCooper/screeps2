@@ -42,31 +42,6 @@ export function reversePath(path: PathStep[]) {
 }
 
   /**
-    * Get the first storage object available. This prioritizes StructureContainer,
-    * but will fall back to an extension, or to the spawn if need be.
-    *
-    * @export
-    * @returns {Structure}
-    */
-  export function getStorageObject(room: Room): Structure {
-    let tempRoom = new myRoom(room);
-    let targets: Structure[] = tempRoom.myStructures.filter((structure: StructureContainer) => {
-      return ((structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_STORAGE)
-        && _.sum(structure.store) < structure.storeCapacity);
-    });
-
-    // if we can't find any storage containers, use either the extension or spawn.
-    if (targets.length === 0) {
-      targets = tempRoom.myStructures.filter((structure: StructureExtension) => {
-        return ((structure.structureType === STRUCTURE_EXTENSION || structure.structureType === STRUCTURE_SPAWN) &&
-          structure.energy < structure.energyCapacity);
-      });
-    }
-
-    return targets[0];
-  }
-
-  /**
    * Get the first energy dropoff point available. This prioritizes the spawn,
    * falling back on extensions, then towers, and finally containers.
    *
@@ -98,14 +73,16 @@ export function reversePath(path: PathStep[]) {
 
     // Or, look for containers.
     if (targets.length == 0) {
-      targets = <Container []> tempRoom.myStructures.filter((structure: StructureStorage) => {
-        return ((structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) < structure.storeCapacity);
+      targets = <Container []> tempRoom.room.find<Structure>(FIND_STRUCTURES).filter((structure: StructureContainer) => {
+        return ((structure.structureType == STRUCTURE_CONTAINER) &&
+               structure.store[RESOURCE_ENERGY] < structure.storeCapacity);
       });
     }
+    //console.log(targets);
     // Otherwise, look for storage.
     if (targets.length == 0) {
-      targets = <Storage []> tempRoom.myStructures.filter((structure: StructureStorage) => {
-        return ((structure.structureType == STRUCTURE_STORAGE) && _.sum(structure.store) < structure.storeCapacity);
+      targets = <Storage []> tempRoom.room.find<Structure>(FIND_STRUCTURES).filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity);
       });
     }
     return targets[0];
@@ -118,17 +95,17 @@ export function reversePath(path: PathStep[]) {
    * @export
    * @returns {Structure}
    */
-  export function getPickupPoint(room: Room): Spawn | Container | Storage | Extension  {
+  export function getPickupPoint(room: Room, creep: Creep): Spawn | Container | Storage | Extension  {
     let tempRoom: myRoom = new myRoom(room);
     let targets: Spawn[] | Container[] | Storage[] | Extension[];
-    targets = <Storage []> tempRoom.myStructures.filter((structure: StructureStorage) => {
-        return ((structure.structureType == STRUCTURE_STORAGE) && _.sum(structure.store) > 0);
+    targets = <Storage []> tempRoom.room.find<Structure>(FIND_STRUCTURES).filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 0);
       });
 
       // Or, look for containers.
     if (targets.length == 0) {
-      targets = <Container []> tempRoom.myStructures.filter((structure: StructureStorage) => {
-        return ((structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) > 0);
+      targets = <Container []> tempRoom.room.find<Structure>(FIND_STRUCTURES).filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > 0);
       });
     };
 
@@ -139,7 +116,8 @@ export function reversePath(path: PathStep[]) {
                (<Spawn> structure).energy > 0);
         });
     }
-    return targets[0];
+    let test = creep.pos.findClosestByPath<Spawn | Container | Storage | Extension>(targets);
+    return test;
   }  
 export function isDefender (creep: Creep): boolean {
   // If has offensive bodyparts && has an appropriate role
@@ -163,6 +141,10 @@ export function notSourceKeeper (creep: Creep): boolean {
 
 export function isMiner (creep: Creep): boolean {
     return creep.memory.role === "miner";
+}
+
+export function isTransporter (creep: Creep): boolean {
+    return creep.memory.role === "transporter";
 }
 
 export function isHealer (creep: Creep): boolean {

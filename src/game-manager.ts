@@ -2,6 +2,7 @@
 
 import {RoomManager} from "./managers/room_manager";
 import {EnergyMonitor} from "./monitor/energy_monitor";
+import {BuildingManager} from "./managers/building_manager"
 import sp = require("./util/spawner");
 import pr = require("./managers/perform_roles");
 /**
@@ -28,12 +29,47 @@ export class GameManager {
         // Use this bootstrap wisely. You can cache some of your stuff to save CPU
         // You should extend prototypes before game loop in here.
 
+
+        // Allow us to add our own types to room memory. See room.d.ts 
         Room.prototype._memory = function () {
             let that = this as Room;
             return that.memory as RoomMemory;
         }
 
-        console.log("New screeps cycle.");
+        // Allow us to add our own types to creep memory. See creep.d.ts 
+        Creep.prototype._memory = function () {
+            let that = this as Creep;
+            return that.memory as CreepMemory;
+        }
+
+        // When using screeps pathfinder, it does not normally take impassable buildings into account....
+        Room.prototype.getCostMatrix = function (addCreeps = false) {
+            let that = this as Room;
+            let structurePos = that.find<Structure>(FIND_STRUCTURES, {
+                filter: (structure: Structure) => {
+                    return structure.structureType !== STRUCTURE_CONTAINER &&
+                        structure.structureType !== STRUCTURE_ROAD &&
+                        structure.structureType !== STRUCTURE_RAMPART;
+                }
+            }).map(structure => structure.pos);
+            structurePos.concat(that.find<Structure>(FIND_CONSTRUCTION_SITES, {
+                filter: (constructionSite: Structure) => {
+                    return constructionSite.structureType !== STRUCTURE_CONTAINER &&
+                        constructionSite.structureType !== STRUCTURE_ROAD &&
+                        constructionSite.structureType !== STRUCTURE_RAMPART;
+                }
+            }).map(structure => structure.pos));
+            if (addCreeps) {
+                structurePos.concat(that.find<Creep>(FIND_CREEPS).map(creep => creep.pos));
+            }
+            let matrix = new PathFinder.CostMatrix();
+            for (let unwalkablePos of structurePos) {
+                matrix.set(unwalkablePos.x, unwalkablePos.y, 255);
+            }
+            return matrix;
+        }
+
+        //console.log("New screeps cycle.");
 
     }
 
@@ -49,17 +85,22 @@ export class GameManager {
         try {
             let test = new EnergyMonitor();
             test.run();
-            for (let i in Game.rooms) {
-                //manager.reset();;
+            for (let i of Object.keys(Game.rooms)) {
+                // manager.reset();
+                if (true) {
+                    let test = new BuildingManager(Game.rooms[i]);
+                    test.buildRoads();
+                }
                 let manager = new RoomManager(Game.rooms[i]);
                 manager.initMemory();
                 manager.updateNeeds();
             }
 
-            for (let i in Game.spawns) {
+            for (let i of Object.keys(Game.spawns)) {
                 sp.spawner(Game.spawns[i]);
             }
             pr.peformRoles(Game.creeps);
+            //console.log(Game.cpu.getUsed());
         } catch (err) {
             this.dumpError(err);
         }

@@ -5,6 +5,7 @@ import {Miner} from "./../models/role_miner";
 import {MinerHelper} from "./../models/role_miner_helper";
 import {Upgrader} from "./../models/role_upgrader";
 import {Builder} from "./../models/role_builder";
+import {Archer} from "./../models/role_archer";
 
 export function roleExists(role) {
     if (rolesCache [role] === undefined) {
@@ -25,6 +26,9 @@ export function roleExists(role) {
                     break;
                 case "builder":
                     RoleConstructor = Builder;
+                    break;
+                case "archer":
+                    RoleConstructor = Archer;
                     break;
                 default:
                     throw new Error("Invalid role! role-manager");

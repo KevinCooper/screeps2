@@ -46,18 +46,19 @@ export class Builder extends ProtoRole {
             }
             return;
         }
-        if (tempRoom._memory.info.miners < tempRoom._memory.info.numSources) {
+        if (tempRoom._memory.info.miners < tempRoom._memory.info.numSources ||
+                tempRoom._memory.info.minerHelpers < tempRoom._memory.info.neededMinerHelpers) {
             this.rest(true);
         } else if (creep.carry.energy === 0) {
             let closestSpawn = this.findClosestSpawn();
-            let pickup = util.getPickupPoint(creep.room);
+            let pickup = util.getPickupPoint(creep.room, creep);
             if (closestSpawn) {
                 this.moveTo(pickup);
                 // closestSpawn.transferEnergy(creep);
                 creep.withdraw(pickup, RESOURCE_ENERGY, this.creep.carryCapacity);
             }
         } else {
-            let structures = tempRoom.myStructures;
+            let structures = tempRoom.room.find<Structure>(FIND_STRUCTURES);
             let damagedRamparts = [];
             for (let struct of structures){
                 if (struct.structureType === "rampart" && struct.hits < (struct.hitsMax / 10)) {
@@ -77,7 +78,7 @@ export class Builder extends ProtoRole {
 
             let toRepair = [];
             for (let struct of structures) {
-                if ((struct.hits / struct.hitsMax) < 0.5) {
+                if ((struct.hits / struct.hitsMax) < 0.5 && struct.hits < 20000) {
                     toRepair.push(struct);
                 }
             }
@@ -96,10 +97,10 @@ export class Builder extends ProtoRole {
                 return;
             } else {
                 // TODO : FIX THIS
-                target = this.rangedAttack(null);
-                if (target) {
-                   this.kite(target);
-                }
+                // target = this.rangedAttack(null);
+                // if (target) {
+                //    this.kite(target);
+                // }
                 this.rest(true);
             }
         }

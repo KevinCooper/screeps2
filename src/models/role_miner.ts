@@ -11,7 +11,7 @@ let WORK_EFFICIENCY = 2;
  * @TODO: See if we can't implement preffered spawn spots close to their source
  */
 export class Miner extends ProtoRole {
-
+    private neededHelpers;
     constructor() {
         super();
         this.baseParts = [WORK, WORK];
@@ -56,11 +56,17 @@ export class Miner extends ProtoRole {
         let helperSpawn: Spawn = source.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS);
         let steps: number = helperSpawn.pos.findPathTo(source).length * 2;
         let creepsNeeded: number = Math.round((steps * 8) / 100);
-
+        this.neededHelpers = creepsNeeded;
         if (creepsNeeded > 5) {
             creepsNeeded = 5;
         }
         creep.memory.helpersNeeded = creepsNeeded;
+    }
+
+    public onStart(){
+        let room = this.room;
+        room._memory.info.miners += 1;
+        console.log("Miners on start: " + room._memory.info.miners);
     }
 
     public onSpawn() {
@@ -78,15 +84,18 @@ export class Miner extends ProtoRole {
             console.log ("No open sources!");
             creep.suicide();
         }
-
-        room._memory.info.miners += 1;
+        room._memory.info.neededMinerHelpers += creep.memory.helpersNeeded;
+        console.log("Miners on spawn: " + room._memory.info.miners);
+        
     }
 
     public onDeath() {
         let creep: Creep = this.creep;
         let room = this.room;
-
+        console.log("Miners before death: " + room._memory.info.miners);
         room._memory.info.miners -= 1;
+        console.log("Miners updated death: " + room._memory.info.miners);
+        room._memory.info.neededMinerHelpers -= creep.memory.helpersNeeded;
         if (creep.memory.source !== undefined){
             let source = Game.getObjectById<Source>(creep.memory.source);
             if (source) {

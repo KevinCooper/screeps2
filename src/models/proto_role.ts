@@ -48,7 +48,7 @@ export class ProtoRole {
             this.creep.memory.onSpawned = true;
         }
 
-        if (this.creep.ticksToLive === 1) {
+        if (this.creep.ticksToLive === 2) {
             this.onDeath();
             this.beforeAge();
         }
@@ -200,6 +200,17 @@ export class ProtoRole {
         }
     }
 
+    public moveAndTransfer(target: Creep, cacheRoute: boolean ) {
+        let creep = this.creep;
+        if (!creep.pos.isNearTo(target) && cacheRoute) {
+            this.moveTo(target);
+        }else if (!creep.pos.isNearTo(target) && !cacheRoute) {
+            this.creep.moveTo(target);
+        }else{
+            creep.transfer(target, RESOURCE_ENERGY);
+        }
+    }
+
     public getClosest<T>(type: number, opts: any) {
         if (opts !== undefined || typeof opts === "array") {
             return this.creep.pos.findClosestByRange<T>(type, opts);
@@ -294,8 +305,8 @@ export class ProtoRole {
 
     public moveAwayFrom(target: Creep) {
         let creep = this.creep;
-        creep.move(creep.pos.getDirectionTo(creep.pos.x + creep.pos.x - target.pos.x,
-            creep.pos.y + creep.pos.y - target.pos.y));
+        creep.move(creep.pos.getDirectionTo(Math.abs(creep.pos.x + creep.pos.x - target.pos.x),
+            Math.abs(creep.pos.y + creep.pos.y - target.pos.y)));
         //console.log("5");
     }
 

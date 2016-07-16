@@ -11,20 +11,20 @@ export class MinerHelper extends ProtoRole {
 
     constructor() {
         super();
-        this.baseParts = [CARRY, MOVE];
+        this.baseParts = [CARRY, CARRY];
     }
 
     public isCreepToHelp (possibleTarget: Creep): boolean {
-        console.log(possibleTarget);
         return possibleTarget !== this.creep
+            && possibleTarget.my
             && possibleTarget.memory.role === this.creep.memory.role
             && possibleTarget.memory.miner === this.creep.memory.miner
             && !possibleTarget.memory.courier
-            && possibleTarget.carry.energy == possibleTarget.carryCapacity
+            && possibleTarget.carry.energy === possibleTarget.carryCapacity
             && this.spawn.pos.getRangeTo (this.creep) < this.spawn.pos.getRangeTo (possibleTarget);
     }
 
-    public isMinerNeedingHelpers (miner : Creep) : boolean {
+    public isMinerNeedingHelpers (miner: Creep) : boolean {
         return miner.memory.role === "miner" && miner.memory.helpers.length < miner.memory.helpersNeeded;
     }
 
@@ -93,6 +93,7 @@ export class MinerHelper extends ProtoRole {
         this.miner = miner;
         room._memory.info.suppliers += 1;
         room._memory.info.supplyEnergy += creep.getActiveBodyparts(CARRY) * 2;
+        room._memory.info.minerHelpers += 1;
     }
 
     public onSpawn() {
@@ -107,6 +108,7 @@ export class MinerHelper extends ProtoRole {
     public onDeath() {
         let creep: Creep = this.creep;
         let room = this.room;
+        room._memory.info.minerHelpers -= 1;
         room._memory.info.suppliers -= 1;
         room._memory.info.supplyEnergy -= creep.getActiveBodyparts(CARRY) * 2;
         if (creep.memory.miner) {
@@ -130,7 +132,7 @@ export class MinerHelper extends ProtoRole {
         let creep : Creep = this.creep;
         if (creep.memory.courier) {
             let courier = Game.getObjectById<Creep>(creep.memory.courier);
-            this.moveAndPerform (courier, creep.transfer);
+            this.moveAndTransfer(courier, false);
             creep.memory.courier = null;
             return;
         }
@@ -164,16 +166,17 @@ export class MinerHelper extends ProtoRole {
                 // they have some energy, and
                 // they're further from target than we are.
 
-                // let creepToHelp = creep.room.find<Creep>(FIND_CREEPS).filter(this.isCreepToHelp, this);
-                // creep.pos.findClosestByRange<Creep>(creepToHelp, {filter : this.isCreepToHelp } );
-                // let creepToHelp = creep.pos.findClosestByRange<Creep>(FIND_CREEPS, {filter: this.isCreepToHelp})
-                let creepToHelp = null;
+                let creepToHelp = creep.pos.findClosestByRange<Creep>(FIND_CREEPS, 
+                                            {filter: this.isCreepToHelp.bind(this)});
+                //console.log(creepToHelp);
+                //creepToHelp = null;
                 if (creepToHelp) {
                     creep.say("Take Energy!");
                     creepToHelp.say("Give Energy!");
                     creepToHelp.memory.courier = creep.id;
                     if (!creep.pos.isNearTo(creepToHelp)) {
-                        this.moveTo(creepToHelp);
+                        // NO CACHE PATHING
+                        this.creep.moveTo(creepToHelp);
                     }
                 }else if (miner.memory.isNearSource) {
                     this.moveTo(miner);

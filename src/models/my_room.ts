@@ -2,18 +2,6 @@
 import util = require("./../util/util");
 
 export class myRoom {
-    private _creeps: Creep[] = [];
-    private _myCreeps: Creep[] = [];
-    private _hostileCreeps: Creep[] = [];
-    private _defenders: Creep[] = [];
-    private _scavengers: Creep[] = [];
-    private _myDamagedCreeps: Creep[] = [];
-    private _myStructures: Structure[] = [];
-    private _spawns: Spawn[] = [];
-    private _constructionSites: ConstructionSite[] = [];
-    private _sourcesActive: Source[] = [];
-    private _droppedEnergy: Resource[] = [];
-    private _underAttack: boolean;
     private _room: Room;
     public constructor(room: Room) {
         this._room = room;
@@ -28,13 +16,14 @@ export class myRoom {
                upgradeEnergy : 0,
                numSources : room.find(FIND_SOURCES_ACTIVE).length,
                miners : 0,
+               neededMinerHelpers : 0,
+               minerHelpers : 0,
             };
         }
     }
 
     get creeps(): Creep[] {
-        this._creeps  = this._room.find<Creep>(FIND_CREEPS);
-        return this._creeps;
+        return this._room.find<Creep>(FIND_CREEPS);
     }
     get room(): Room {
         return this._room;
@@ -46,47 +35,36 @@ export class myRoom {
         return this._room._memory();
     }
     get myCreeps(): Creep[]{
-        this._myCreeps = this._room.find<Creep>(FIND_MY_CREEPS);
-        return this._myCreeps;
+        return this._room.find<Creep>(FIND_MY_CREEPS);
     }
     get hostileCreeps(){
-        this._hostileCreeps = this._room.find<Creep>(FIND_HOSTILE_CREEPS);
-        return this._hostileCreeps;
+        return this._room.find<Creep>(FIND_HOSTILE_CREEPS);
     }
     get defenders(){
-        this._defenders = this.myCreeps.filter(util.isDefender);
-        return this._defenders;
+        return this.myCreeps.filter(util.isDefender);
     }
     get scavengers(){
-        this._scavengers = this.myCreeps.filter(util.isScavenger);
-        return this._scavengers;
+        return this.myCreeps.filter(util.isScavenger);
     }
     get myDamagedCreeps(){
-        this._myDamagedCreeps = this.myCreeps.filter(util.isDamaged);
-        return this._myDamagedCreeps;
+        return this.myCreeps.filter(util.isDamaged);
     }
     get myStructures(){
-        this._myStructures = this._room.find<Structure>(FIND_MY_STRUCTURES);
-        return this._myStructures;
+        return this._room.find<Structure>(FIND_MY_STRUCTURES);
     }
     get mySpawns(){
-        this._spawns = this._room.find<Spawn>(FIND_MY_SPAWNS);
-        return this._spawns;
+        return this._room.find<Spawn>(FIND_MY_SPAWNS);
     }
     get constructionSites(){
-        this._constructionSites = this._room.find<ConstructionSite>(FIND_CONSTRUCTION_SITES);
-        return this._constructionSites;
+        return this._room.find<ConstructionSite>(FIND_CONSTRUCTION_SITES);
     }
     get sourcesActive(){
-        this._sourcesActive = this._room.find<Source>(FIND_SOURCES_ACTIVE);
-        return this._sourcesActive;
+        return this._room.find<Source>(FIND_SOURCES_ACTIVE);
     }
     get droppedEnergy(){
-        this._droppedEnergy = this._room.find<Resource>(FIND_DROPPED_RESOURCES);
-        return this._droppedEnergy;
+        return this._room.find<Resource>(FIND_DROPPED_RESOURCES);
     }
     get underAttack(){
-        this._underAttack = this.hostileCreeps.filter(util.notSourceKeeper).length > 0;
-        return this._underAttack;
+        return this.hostileCreeps.filter(util.notSourceKeeper).length > 0;
     }
 }

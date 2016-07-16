@@ -4,7 +4,7 @@ import {myRoom} from "./../models/my_room";
 
 let DEFENDERS_PER_HEALER: number = 3;
 let CIVILIANS_PER_HEALER: number = 5;
-
+let MIN_IDLE_DEFENDERS: number = 4;
 let MAX_BUILDERS: number = 4;
 let CONSTRUCTION_SITES_PER_BUILDER: number = 3;
 let UPGRADERS_REQUIRED: number = 2;
@@ -67,16 +67,17 @@ export class RoomManager {
                         energy : 0,
                     };
         // Minimum reached, now we need non-suppliers
-        if ((this.enerySupply >= this.MIN_SUPPLY && this.room._memory.info.miners >= 
-            this.room._memory.info.numSources ) || this.room.underAttack) {
-            // this.updateNeedsDefenders ();
+        this.updateNeedsHelpers ();
+        this.updateNeedsSuppliers ();
+        if ( (this.room._memory.info.miners >= this.room._memory.info.numSources
+                && this.room._memory.info.minerHelpers >= this.room._memory.info.neededMinerHelpers)
+                || this.room.underAttack) {
             // this.updateNeedsHealers ();
             // this.updateNeedsScavengers ();
             this.updateNeedsUpgraders ();
             this.updateNeedsBuilders ();
+            this.updateNeedsDefenders ();
         }
-        this.updateNeedsHelpers ();
-        this.updateNeedsSuppliers ();
         // If doesn't need anything
         if (this.needs.creeps.length === 0) {
             this.updateNeedsSurplus ();
@@ -111,8 +112,9 @@ export class RoomManager {
         let room: myRoom = this.room;
         let builders: Creep[] = room.myCreeps.filter(util.isBuilder);
         let constrSites = room.constructionSites.length;
-        let neededBuilders = Math.ceil(constrSites / CONSTRUCTION_SITES_PER_BUILDER) - builders.length;
-        if ( builders.length < 5) {
+        // Always want to have 1 just in case of repairs, at least for now.
+        let neededBuilders = Math.ceil(constrSites / CONSTRUCTION_SITES_PER_BUILDER) + 1 - builders.length;
+        if ( builders.length < MAX_BUILDERS && neededBuilders > 0) {
             this.needs.creeps.push(
                 {
                     role : "builder",
@@ -135,8 +137,8 @@ export class RoomManager {
     }
 
     public updateNeedsDefenders() {
-        let neddedDefenders = this.room.hostileCreeps.length - this.room.defenders.length + 1;
-        for (let i = 0; i < neddedDefenders; i++) {
+        let neededDefenders = this.room.hostileCreeps.length - this.room.defenders.length + MIN_IDLE_DEFENDERS;
+        if (neededDefenders > 0) {
             this.needs.creeps.push(
                 {
                     role : "archer",

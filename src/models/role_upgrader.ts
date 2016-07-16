@@ -17,7 +17,7 @@ export class Upgrader extends ProtoRole {
     public onSpawn() {
         let creep = this.creep;
         let room = this.room;
-        creep.memory.is = creep.id;
+        creep.memory.id = creep.id;
 
         if (creep.room.controller) {
             creep.memory.controller = creep.room.controller.id;
@@ -48,7 +48,7 @@ export class Upgrader extends ProtoRole {
 
         let controller = Game.getObjectById<Controller>(creep.memory.controller);
         //let spawn = Game.getObjectById<Spawn>(creep.memory.spawn);
-        let pickup = util.getPickupPoint(creep.room);
+        let pickup = util.getPickupPoint(creep.room, creep);
         let tempRoom = new myRoom(creep.room);
         if (tempRoom.underAttack) {
             if (creep.carry.energy > 0) {
@@ -57,12 +57,15 @@ export class Upgrader extends ProtoRole {
                 this.keepAwayFromEnemies();
             }
         } else {
-            if (tempRoom._memory.info.miners < tempRoom._memory.info.numSources) {
+            if (tempRoom._memory.info.miners < tempRoom._memory.info.numSources ||
+                tempRoom._memory.info.minerHelpers < tempRoom._memory.info.neededMinerHelpers) {
                 this.rest(true);
             } else if (creep.carry.energy > 0) {
                 this.moveAndPerform(controller, creep.upgradeController);
             } else {
-                this.moveTo(pickup);
+                if (!creep.pos.isNearTo(pickup)) {
+                    this.moveTo(pickup);
+                }
                 creep.withdraw(pickup, RESOURCE_ENERGY, creep.carryCapacity)
                 //spawn.transferEnergy(creep);
             }
