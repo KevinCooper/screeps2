@@ -55,7 +55,7 @@ export class Miner extends ProtoRole {
 
         let helperSpawn: Spawn = source.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS);
         let steps: number = helperSpawn.pos.findPathTo(source).length * 2;
-        let creepsNeeded: number = Math.round((steps * 8) / 100);
+        let creepsNeeded: number = Math.max(Math.round((steps * 8) / 100), 1);
         this.neededHelpers = creepsNeeded;
         if (creepsNeeded > 5) {
             creepsNeeded = 5;
@@ -66,7 +66,6 @@ export class Miner extends ProtoRole {
     public onStart(){
         let room = this.room;
         room._memory.info.miners += 1;
-        console.log("Miners on start: " + room._memory.info.miners);
     }
 
     public onSpawn() {
@@ -85,16 +84,13 @@ export class Miner extends ProtoRole {
             creep.suicide();
         }
         room._memory.info.neededMinerHelpers += creep.memory.helpersNeeded;
-        console.log("Miners on spawn: " + room._memory.info.miners);
         
     }
 
     public onDeath() {
         let creep: Creep = this.creep;
         let room = this.room;
-        console.log("Miners before death: " + room._memory.info.miners);
         room._memory.info.miners -= 1;
-        console.log("Miners updated death: " + room._memory.info.miners);
         room._memory.info.neededMinerHelpers -= creep.memory.helpersNeeded;
         if (creep.memory.source !== undefined){
             let source = Game.getObjectById<Source>(creep.memory.source);

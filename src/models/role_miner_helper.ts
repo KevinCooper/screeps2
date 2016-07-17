@@ -84,25 +84,24 @@ export class MinerHelper extends ProtoRole {
     }
 
     public assignMiner() {
-        let creep: Creep = this.creep;
-        let room = this.room;
         let miner: Creep = this.getClosest(FIND_CREEPS, {filter : this.isMinerNeedingHelpers});
         if (!miner) {
             return;
         }
         this.miner = miner;
-        room._memory.info.suppliers += 1;
-        room._memory.info.supplyEnergy += creep.getActiveBodyparts(CARRY) * 2;
-        room._memory.info.minerHelpers += 1;
+
     }
 
     public onSpawn() {
         let creep : Creep = this.creep;
+        let room = this.room;
         creep.memory.id = creep.id;
         // Because I want it to be done ASAP
         this.assignSpawn ();
         this.assignMiner ();
-
+        room._memory.info.suppliers += 1;
+        room._memory.info.supplyEnergy += creep.getActiveBodyparts(CARRY) * 2;
+        room._memory.info.minerHelpers += 1;
     }
 
     public onDeath() {
@@ -147,6 +146,7 @@ export class MinerHelper extends ProtoRole {
         }
 
         if (creep.carry.energy < creep.carryCapacity) {
+        //if (creep.carry.energy === 0) {
             if (creep.pos.isNearTo(miner)) {
                 let energyOrbs = miner.pos.lookFor<Resource>("energy");
                 if (energyOrbs !== null && energyOrbs.length) {
@@ -166,10 +166,10 @@ export class MinerHelper extends ProtoRole {
                 // they have some energy, and
                 // they're further from target than we are.
 
-                let creepToHelp = creep.pos.findClosestByRange<Creep>(FIND_CREEPS, 
-                                            {filter: this.isCreepToHelp.bind(this)});
-                //console.log(creepToHelp);
-                //creepToHelp = null;
+                // let creepToHelp = creep.pos.findClosestByRange<Creep>(FIND_CREEPS,
+                //                            {filter: this.isCreepToHelp.bind(this)});
+                // console.log(creepToHelp);
+                let creepToHelp = null;
                 if (creepToHelp) {
                     creep.say("Take Energy!");
                     creepToHelp.say("Give Energy!");
@@ -190,6 +190,7 @@ export class MinerHelper extends ProtoRole {
             if (target) {
                 if (creep.pos.isNearTo(target)) {
                     let notFull: boolean;
+                    // Determine if the target is full of energy
                     if (target.structureType === "spawn" || target.structureType === "extension" ||
                                                             target.structureType === "tower" ) {
                         let target2 = <Spawn | Extension | Tower> target;
@@ -199,6 +200,7 @@ export class MinerHelper extends ProtoRole {
                         notFull = target2.store[RESOURCE_ENERGY] < target2.storeCapacity;
                     }
 
+                    // Drop off the energy
                     if (notFull) {
                         creep.transfer(target, RESOURCE_ENERGY);
                     }else {

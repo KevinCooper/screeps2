@@ -52,16 +52,16 @@ export class Builder extends ProtoRole {
         } else if (creep.carry.energy === 0) {
             let closestSpawn = this.findClosestSpawn();
             let pickup = util.getPickupPoint(creep.room, creep);
-            if (closestSpawn) {
+            if (pickup) {
                 this.moveTo(pickup);
                 // closestSpawn.transferEnergy(creep);
-                creep.withdraw(pickup, RESOURCE_ENERGY, this.creep.carryCapacity);
+                creep.withdraw(pickup, RESOURCE_ENERGY);
             }
         } else {
             let structures = tempRoom.room.find<Structure>(FIND_STRUCTURES);
             let damagedRamparts = [];
             for (let struct of structures){
-                if (struct.structureType === "rampart" && struct.hits < (struct.hitsMax / 10)) {
+                if (struct.structureType === "rampart" && struct.hits < (struct.hitsMax / 10) && struct.hits < 20000) {
                     damagedRamparts.push(struct);
                 }
             }
@@ -82,7 +82,6 @@ export class Builder extends ProtoRole {
                     toRepair.push(struct);
                 }
             }
-
             if (toRepair.length) {
                 let struct = toRepair[0];
                 this.moveTo(struct);
@@ -91,7 +90,6 @@ export class Builder extends ProtoRole {
             }
 
             let target = this.getClosest<ConstructionSite>(FIND_CONSTRUCTION_SITES, undefined);
-
             if (target) {
                 this.moveAndPerform(target, creep.build);
                 return;
