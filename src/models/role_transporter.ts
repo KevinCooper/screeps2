@@ -5,8 +5,8 @@ import {ProtoRole} from "./proto_role";
 import {myRoom} from "./../models/my_room";
 
 export class Transporter extends ProtoRole {
-    constructor() {
-        super();
+    constructor(creep: Creep) {
+        super(creep);
         this.baseParts = [CARRY, CARRY];
     }
 

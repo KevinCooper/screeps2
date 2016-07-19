@@ -5,8 +5,8 @@ import {myRoom} from "./../models/my_room";
 
 export class Harvester extends ProtoRole {
 
-    constructor() {
-        super();
+    constructor(creep: Creep) {
+        super(creep);
         this.baseParts = [WORK, CARRY];
     }
 

@@ -9,9 +9,9 @@ import util = require("./../util/util");
  */
 export class MinerHelper extends ProtoRole {
 
-    constructor() {
-        super();
-        this.baseParts = [CARRY, CARRY];
+    constructor(creep: Creep) {
+        super(creep);
+        this.baseParts = [CARRY, MOVE];
     }
 
     public isCreepToHelp (possibleTarget: Creep): boolean {
@@ -93,7 +93,7 @@ export class MinerHelper extends ProtoRole {
     }
 
     public onSpawn() {
-        let creep : Creep = this.creep;
+        let creep: Creep = this.creep;
         let room = this.room;
         creep.memory.id = creep.id;
         // Because I want it to be done ASAP
@@ -129,14 +129,13 @@ export class MinerHelper extends ProtoRole {
     */
     public action() {
         let creep : Creep = this.creep;
+        let miner = this.miner;
         if (creep.memory.courier) {
             let courier = Game.getObjectById<Creep>(creep.memory.courier);
             this.moveAndTransfer(courier, false);
             creep.memory.courier = null;
             return;
         }
-
-        let miner = this.miner;
 
         if (miner == null) {
             creep.say("I see no miners to help, and thus I die");
@@ -146,12 +145,17 @@ export class MinerHelper extends ProtoRole {
         }
 
         if (creep.carry.energy < creep.carryCapacity) {
-        //if (creep.carry.energy === 0) {
             if (creep.pos.isNearTo(miner)) {
+                let minerContainer = miner.pos.lookFor<Container>("container");
+                if (minerContainer !== null && minerContainer[0] &&_.sum(minerContainer[0].store) > 0) {
+                    creep.withdraw(minerContainer[0], RESOURCE_ENERGY);
+                }
                 let energyOrbs = miner.pos.lookFor<Resource>("energy");
                 if (energyOrbs !== null && energyOrbs.length) {
                     creep.pickup(energyOrbs[0]);
                 }
+
+                
             }else {
                 // We're not near miner going to him
                 // But first lets try looking for helpers already 
@@ -167,7 +171,7 @@ export class MinerHelper extends ProtoRole {
                 // they're further from target than we are.
 
                 // let creepToHelp = creep.pos.findClosestByRange<Creep>(FIND_CREEPS,
-                //                            {filter: this.isCreepToHelp.bind(this)});
+                //                             {filter: this.isCreepToHelp.bind(this)});
                 // console.log(creepToHelp);
                 let creepToHelp = null;
                 if (creepToHelp) {
@@ -205,6 +209,11 @@ export class MinerHelper extends ProtoRole {
                         creep.transfer(target, RESOURCE_ENERGY);
                     }else {
                         creep.drop(RESOURCE_ENERGY);
+                    }
+
+                    // Since we can perform action and move same turn
+                    if (miner.memory.isNearSource) {
+                        this.moveTo(miner);
                     }
                 }else {
                     this.moveTo(target);

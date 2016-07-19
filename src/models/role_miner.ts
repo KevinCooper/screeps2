@@ -3,7 +3,7 @@
 import {ProtoRole} from "./proto_role";
 
 let WORK_EFFICIENCY = 2;
-
+let MAX_HELPERS = 3;
 
 
 /**
@@ -12,8 +12,8 @@ let WORK_EFFICIENCY = 2;
  */
 export class Miner extends ProtoRole {
     private neededHelpers;
-    constructor() {
-        super();
+    constructor(creep: Creep) {
+        super(creep);
         this.baseParts = [WORK, WORK];
     }
 
@@ -55,7 +55,7 @@ export class Miner extends ProtoRole {
 
         let helperSpawn: Spawn = source.pos.findClosestByRange<Spawn>(FIND_MY_SPAWNS);
         let steps: number = helperSpawn.pos.findPathTo(source).length * 2;
-        let creepsNeeded: number = Math.max(Math.round((steps * 8) / 100), 1);
+        let creepsNeeded: number = Math.min(Math.max(Math.round((steps * 8) / 100), 1), MAX_HELPERS);
         this.neededHelpers = creepsNeeded;
         if (creepsNeeded > 5) {
             creepsNeeded = 5;

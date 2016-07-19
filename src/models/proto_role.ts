@@ -4,23 +4,19 @@ import * as cc from "./../util/calc_cost";
 import {myRoom} from "./../models/my_room";
 import util = require("./../util/util");
 let MAX_PARTS = 30;
-let ROUTE_CACHE_CLEANING_INTERVAL = 10;
-
-
-if (Game.time % ROUTE_CACHE_CLEANING_INTERVAL === 0 && Memory["routeCache"]) {
-    for (let k in Memory["routeCache"]) {
-        if (Game.getObjectById(k) == null) {
-            delete Memory["routeCache"][k];
-        }
-    }
-}
 
 export class ProtoRole {
-
+    protected creepMemory: CreepMemory;
     protected _cache;
-    protected creep: Creep;
     protected baseParts: Array<string>;
-    constructor() {
+    protected upgradeMove = true;
+    constructor(protected creep: Creep, protected energySources?: Structure[]) {
+        if (energySources) {
+            this.energySources = energySources;
+        }
+        if (_.isObject(creep)) {
+            this.creepMemory = creep.memory;
+        }
         this._cache = {};
     }
 
@@ -66,7 +62,11 @@ export class ProtoRole {
         let baseBody: string[] = [];
         baseBody = baseBody.concat(this.baseParts);
 
-        for (let i = 0; i < this.baseParts.length / 2 ; i++) {
+        if (this.upgradeMove) {
+            for (let i = 0; i < this.baseParts.length / 2 ; i++) {
+                baseBody.push(MOVE);
+            }
+        } else {
             baseBody.push(MOVE);
         }
 
@@ -229,7 +229,6 @@ export class ProtoRole {
         let distance: number = 4;
         let restTarget: Flag = null;
         let flags = Object.keys(Game.flags);
-
         if (civilian) {
             for (let i of flags){
                 let flag: Flag = Game.flags[i];
@@ -270,18 +269,18 @@ export class ProtoRole {
             });
             let closeEnemies: Creep[] = hostiles.filter(util.isInRangedAttackRange, this);
             if (closeEnemies && closeEnemies.length) {
-                let closeArchers = closeEnemies.filter(util.isArcher);
-                if (closeArchers.length) {
-                    return closeArchers[0];
-                }
-                let closeMobileMelee = closeEnemies.filter(util.isMobileMelee);
-                if (closeMobileMelee.length) {
-                    return closeMobileMelee[0];
-                }
-                let closeMobileHealers = closeEnemies.filter(util.isMobileHealer);
-                if (closeMobileHealers.length) {
-                    return closeMobileHealers[0];
-                }
+                //let closeArchers = closeEnemies.filter(util.isArcher);
+                //if (closeArchers.length) {
+                //    return closeArchers[0];
+                //}
+                //let closeMobileMelee = closeEnemies.filter(util.isMobileMelee);
+                //if (closeMobileMelee.length) {
+                //    return closeMobileMelee[0];
+                //}
+                //let closeMobileHealers = closeEnemies.filter(util.isMobileHealer);
+                //if (closeMobileHealers.length) {
+                //    return closeMobileHealers[0];
+                //}
                 return closeEnemies[0];
             }
             return hostiles[0];
@@ -305,8 +304,23 @@ export class ProtoRole {
 
     public moveAwayFrom(target: Creep) {
         let creep = this.creep;
-        creep.move(creep.pos.getDirectionTo(Math.abs(creep.pos.x + creep.pos.x - target.pos.x),
-            Math.abs(creep.pos.y + creep.pos.y - target.pos.y)));
+        let longest : RoomPosition;
+        let longVal = -1;
+        let badPos = target.pos;
+        for (let x = -1; x <= 1; x++){
+            for (let y = -1; y <= 1; y++){
+                let temp = new RoomPosition(creep.pos.x + x , creep.pos.y + y, creep.room.name);
+                if ( temp.getRangeTo(badPos) >  longVal  ) {// &&
+                    //temp.lookFor<String>(LOOK_TERRAIN) && temp.lookFor<String>(LOOK_TERRAIN).length == 1 && 
+                    //(temp.lookFor<String>(LOOK_TERRAIN)[0] == "plain"  || temp.lookFor<String>(LOOK_TERRAIN)[0] == "swamp") &&
+                    //temp.lookFor<Structure>(LOOK_STRUCTURES).length === 0 ) {
+
+                    longVal = temp.getRangeTo(badPos);
+                    longest = temp;
+                }
+            }
+        }
+        creep.move(creep.pos.getDirectionTo(longest.x, longest.y));
         //console.log("5");
     }
 
@@ -326,7 +340,7 @@ export class ProtoRole {
         }else if (target.pos.inRangeTo(creep.pos, 3)) {
             return true;
         }else {
-            this.moveTo(target);
+            this.creep.moveTo(target);
             return true;
         }
     }

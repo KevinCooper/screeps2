@@ -143,6 +143,10 @@ export function isMiner (creep: Creep): boolean {
     return creep.memory.role === "miner";
 }
 
+export function isUpgrader (creep: Creep): boolean {
+    return creep.memory.role === "upgrader";
+}
+
 export function isTransporter (creep: Creep): boolean {
     return creep.memory.role === "transporter";
 }

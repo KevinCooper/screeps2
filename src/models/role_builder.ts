@@ -10,8 +10,9 @@ function isSpawn (structure) {
 }
 
 export class Builder extends ProtoRole {
-    constructor() {
-        super();
+
+    constructor(creep: Creep) {
+        super(creep);
         this.baseParts = [WORK, CARRY];
     }
 
@@ -37,10 +38,11 @@ export class Builder extends ProtoRole {
         let tempRoom = new myRoom(creep.room);
         if (tempRoom.underAttack) {
             if (creep.carry.energy > 0) {
-                let spawn = this.findClosestSpawn();
-                if (spawn) {
-                    this.moveAndPerform(spawn, creep.transfer);
-                }
+                this.rest(true);
+                // let spawn = this.findClosestSpawn();
+                // if (spawn) {
+                //     this.moveAndPerform(spawn, creep.transfer);
+                // }
             }else {
                 this.keepAwayFromEnemies();
             }
@@ -50,18 +52,34 @@ export class Builder extends ProtoRole {
                 tempRoom._memory.info.minerHelpers < tempRoom._memory.info.neededMinerHelpers) {
             this.rest(true);
         } else if (creep.carry.energy === 0) {
-            let closestSpawn = this.findClosestSpawn();
+            // let closestSpawn = this.findClosestSpawn();
             let pickup = util.getPickupPoint(creep.room, creep);
+            /*for (let miner of this.room.myCreeps.filter(util.isMiner)) {
+                if (creep.pos.getRangeTo(miner) < creep.pos.getRangeTo(pickup)) {
+                    let energyOrbs = miner.pos.lookFor<Resource>("energy");
+                    if (energyOrbs !== null && energyOrbs.length) {
+                        pickup = null;
+                        this.moveTo(miner);
+                        creep.pickup(energyOrbs[0]);
+                    }
+                }
+            }*/
             if (pickup) {
                 this.moveTo(pickup);
                 // closestSpawn.transferEnergy(creep);
                 creep.withdraw(pickup, RESOURCE_ENERGY);
             }
-        } else {
+        } else if(creep.carry.energy > 0) {
             let structures = tempRoom.room.find<Structure>(FIND_STRUCTURES);
+            let target = this.getClosest<ConstructionSite>(FIND_CONSTRUCTION_SITES, undefined);
+            if (target) {
+                this.moveAndPerform(target, creep.build);
+                return;
+            }
+
             let damagedRamparts = [];
             for (let struct of structures){
-                if (struct.structureType === "rampart" && struct.hits < (struct.hitsMax / 10) && struct.hits < 20000) {
+                if (struct.structureType === "rampart" && struct.hits < (struct.hitsMax / 10) ) {
                     damagedRamparts.push(struct);
                 }
             }
@@ -84,23 +102,16 @@ export class Builder extends ProtoRole {
             }
             if (toRepair.length) {
                 let struct = toRepair[0];
-                this.moveTo(struct);
-                creep.repair(struct);
+                if (!creep.pos.isNearTo(struct)) {
+                    this.moveTo(struct);
+                } else {
+                    creep.repair(struct);
+                }
                 return;
-            }
-
-            let target = this.getClosest<ConstructionSite>(FIND_CONSTRUCTION_SITES, undefined);
-            if (target) {
-                this.moveAndPerform(target, creep.build);
-                return;
-            } else {
-                // TODO : FIX THIS
-                // target = this.rangedAttack(null);
-                // if (target) {
-                //    this.kite(target);
-                // }
+            }else {
                 this.rest(true);
             }
+
         }
 
     }

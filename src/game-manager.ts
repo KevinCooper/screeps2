@@ -5,6 +5,8 @@ import {EnergyMonitor} from "./monitor/energy_monitor";
 import {BuildingManager} from "./managers/building_manager"
 import sp = require("./util/spawner");
 import pr = require("./managers/perform_roles");
+let ROUTE_CACHE_CLEANING_INTERVAL = 10;
+
 /**
  * Singleton object.
  * Since singleton classes are considered anti-pattern in Typescript, we can effectively use namespaces.
@@ -76,6 +78,21 @@ export class GameManager {
     public loop() {
         // Loop code starts here.....
         // This is executed every tick
+        if (Game.time % 1000 === 0 && Memory["routeCache"]) {
+            delete Memory["routeCache"]
+            console.log("Clearing route cache");
+        }
+
+        if (Game.time % ROUTE_CACHE_CLEANING_INTERVAL === 0 && Memory["routeCache"]) {
+            for (let k in Memory["routeCache"]) {
+                if (Game.getObjectById(k) == null) {
+                    delete Memory["routeCache"][k];
+                    console.log("Cleaning route cache to: " + k);
+                }
+            }
+        }
+
+
         for (let name in Memory.creeps) {
             if (!Game.creeps[name]) {
                 delete Memory.creeps[name];

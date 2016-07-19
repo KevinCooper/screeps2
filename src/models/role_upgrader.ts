@@ -9,9 +9,10 @@ function isSpawn (structure) {
 }
 
 export class Upgrader extends ProtoRole {
-    constructor() {
-        super();
+    constructor(creep: Creep) {
+        super(creep);
         this.baseParts = [WORK, CARRY];
+        this.upgradeMove = false;
     }
 
     public onSpawn() {
@@ -52,9 +53,11 @@ export class Upgrader extends ProtoRole {
         let tempRoom = new myRoom(creep.room);
         if (tempRoom.underAttack) {
             if (creep.carry.energy > 0) {
-                this.moveAndPerform(pickup, creep.transfer)
+                this.rest(true);
+                // this.moveAndPerform(pickup, creep.transfer)
             } else {
-                this.keepAwayFromEnemies();
+                this.rest(true);
+                // this.keepAwayFromEnemies();
             }
         } else {
             if (tempRoom._memory.info.miners < tempRoom._memory.info.numSources ||

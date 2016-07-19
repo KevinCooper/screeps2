@@ -4,14 +4,15 @@ import {ProtoRole} from "./proto_role";
 import {myRoom} from "./../models/my_room";
 
 export class Archer extends ProtoRole {
-    constructor() {
-        super();
-        this.baseParts = [TOUGH, RANGED_ATTACK];
+    constructor(creep: Creep) {
+        super(creep);
+        this.baseParts = [MOVE, RANGED_ATTACK];
     }
 
     public action() {
         let target = this.getRangedTarget();
         if (target) {
+            
             this.rangedAttack(target);
             this.kite(target);
         }else {
