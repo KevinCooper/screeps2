@@ -262,14 +262,7 @@ export class ProtoRole {
         let creeproom = new myRoom(creep.room);
         let hostiles = creeproom.hostileCreeps.filter(util.notSourceKeeper);
         if (hostiles && hostiles.length) {
-            if(Game.getObjectById<Structure>("578c3dbcf783f31624b45c04") !== null){
-                return Game.getObjectById<Structure>("578c3dbcf783f31624b45c04");
-            }
-
-            let badSpawns = creeproom.room.find<Spawn>(FIND_HOSTILE_SPAWNS);
-            if(badSpawns && badSpawns.length) {
-                return badSpawns[0];
-            }
+            
             //return null;
             hostiles.sort(function(a, b){
                 return creep.pos.getRangeTo(a) - creep.pos.getRangeTo(b);
@@ -289,6 +282,10 @@ export class ProtoRole {
                 //    return closeMobileHealers[0];
                 //}
                 return closeEnemies[0];
+            }
+            let badSpawns = creeproom.room.find<Spawn>(FIND_HOSTILE_SPAWNS);
+            if(badSpawns && badSpawns.length) {
+                return badSpawns[0];
             }
             return hostiles[0];
         }
