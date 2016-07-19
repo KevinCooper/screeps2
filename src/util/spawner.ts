@@ -48,6 +48,7 @@ function getTotalEnergy (spawn: Spawn) {
 }
 
 function spawnCreep (role: string , memory: any, spawn: Spawn) {
+    let room = spawn.room;
 
     if (!manager.roleExists(role)) {
         console.log ("There is no such role as " + role + ". Aborting...");
@@ -68,9 +69,10 @@ function spawnCreep (role: string , memory: any, spawn: Spawn) {
     }
 
     let name = getNameByRole (spawn, role);
-
-    console.log("Trying to spawn " + role + "...");
-    return spawn.createCreep (body, name, memory) == name;
+    if(totalEnergy >= room.energyCapacityAvailable * .75){
+        console.log("Trying to spawn " + role + "...");
+        return spawn.createCreep (body, name, memory) == name;
+    }
 }
 
 function spawnNeededCreep (spawn: Spawn ) {

@@ -52,6 +52,14 @@ export class myRoom {
     get myStructures(){
         return this._room.find<Structure>(FIND_MY_STRUCTURES);
     }
+
+
+    get damageBuildings(){
+        return this._room.find<Structure>(FIND_STRUCTURES).filter( structure => {
+            return structure.structureType !== STRUCTURE_RAMPART && structure.structureType !== STRUCTURE_WALL &&
+                   structure.hits < structure.hitsMax;
+        });
+    }
     get mySpawns(){
         return this._room.find<Spawn>(FIND_MY_SPAWNS);
     }
