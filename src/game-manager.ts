@@ -78,6 +78,23 @@ export class GameManager {
     public loop() {
         // Loop code starts here.....
         // This is executed every tick
+
+        let tower = Game.getObjectById<Tower>('578e9a8a9cbddf1a1e4485a2');
+        if(tower) {
+            var closestDamagedStructure = tower.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {
+                filter: (structure) => structure.hits < structure.hitsMax && structure.hits < 20000
+            });
+            if(closestDamagedStructure) {
+                tower.repair(closestDamagedStructure);
+            }
+
+            var closestHostile = tower.pos.findClosestByRange<Creep>(FIND_HOSTILE_CREEPS);
+            if(closestHostile) {
+                tower.attack(closestHostile);
+            }
+        }
+
+
         if (Game.time % 1000 === 0 && Memory["routeCache"]) {
             delete Memory["routeCache"]
             console.log("Clearing route cache");
