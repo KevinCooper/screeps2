@@ -104,10 +104,10 @@ export class GameManager {
             test.run();
             for (let i of Object.keys(Game.rooms)) {
                 // manager.reset();
-                if (true) {
-                    let test = new BuildingManager(Game.rooms[i]);
-                    test.buildRoads();
-                }
+                //if (true) {
+                //    let test = new BuildingManager(Game.rooms[i]);
+                //    test.buildRoads();
+                //}
                 let manager = new RoomManager(Game.rooms[i]);
                 manager.initMemory();
                 manager.updateNeeds();

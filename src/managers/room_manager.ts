@@ -4,7 +4,7 @@ import {myRoom} from "./../models/my_room";
 
 let DEFENDERS_PER_HEALER: number = 3;
 let CIVILIANS_PER_HEALER: number = 5;
-let MIN_IDLE_DEFENDERS: number = 8;
+let MIN_IDLE_DEFENDERS: number = 0;
 let MAX_BUILDERS: number = 3;
 let CONSTRUCTION_SITES_PER_BUILDER: number = 3;
 let UPGRADERS_REQUIRED: number = 3;
@@ -114,7 +114,7 @@ export class RoomManager {
         let constrSites = room.constructionSites.length;
         // Always want to have 1 just in case of repairs, at least for now.
         let neededBuilders = Math.ceil(constrSites / CONSTRUCTION_SITES_PER_BUILDER) + 1 - builders.length;
-        if ( builders.length < MAX_BUILDERS && constrSites > 0) {
+        if ( builders.length < MAX_BUILDERS && neededBuilders > 0) {
             this.needs.creeps.push(
                 {
                     role : "builder",

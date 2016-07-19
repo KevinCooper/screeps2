@@ -146,7 +146,7 @@ export class MinerHelper extends ProtoRole {
 
         if (creep.carry.energy < creep.carryCapacity) {
             if (creep.pos.isNearTo(miner)) {
-                let minerContainer = miner.pos.lookFor<Container>("container");
+                let minerContainer = miner.pos.lookFor<Container>(LOOK_STRUCTURES);
                 if (minerContainer !== null && minerContainer[0] &&_.sum(minerContainer[0].store) > 0) {
                     creep.withdraw(minerContainer[0], RESOURCE_ENERGY);
                 }
@@ -154,8 +154,6 @@ export class MinerHelper extends ProtoRole {
                 if (energyOrbs !== null && energyOrbs.length) {
                     creep.pickup(energyOrbs[0]);
                 }
-
-                
             }else {
                 // We're not near miner going to him
                 // But first lets try looking for helpers already 

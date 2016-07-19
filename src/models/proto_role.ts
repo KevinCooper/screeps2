@@ -62,13 +62,11 @@ export class ProtoRole {
         let baseBody: string[] = [];
         baseBody = baseBody.concat(this.baseParts);
 
-        if (this.upgradeMove) {
-            for (let i = 0; i < this.baseParts.length / 2 ; i++) {
-                baseBody.push(MOVE);
-            }
-        } else {
+
+        for (let i = 0; i < Math.floor(this.baseParts.length / 2.0) ; i++) {
             baseBody.push(MOVE);
         }
+
 
         let times = Math.floor(maxEnergy / cc.calcCost(baseBody));
 
@@ -259,11 +257,20 @@ export class ProtoRole {
         }
     }
 
-    public getRangedTarget(): Creep {
+    public getRangedTarget(): Creep | Structure {
         let creep = this.creep;
         let creeproom = new myRoom(creep.room);
         let hostiles = creeproom.hostileCreeps.filter(util.notSourceKeeper);
         if (hostiles && hostiles.length) {
+            if(Game.getObjectById<Structure>("578c3dbcf783f31624b45c04") !== null){
+                return Game.getObjectById<Structure>("578c3dbcf783f31624b45c04");
+            }
+
+            let badSpawns = creeproom.room.find<Spawn>(FIND_HOSTILE_SPAWNS);
+            if(badSpawns && badSpawns.length) {
+                return badSpawns[0];
+            }
+            //return null;
             hostiles.sort(function(a, b){
                 return creep.pos.getRangeTo(a) - creep.pos.getRangeTo(b);
             });
@@ -288,7 +295,7 @@ export class ProtoRole {
         return null;
     }
 
-    public rangedAttack(target : Creep) : Creep {
+    public rangedAttack(target : Creep | Structure) : Creep | Structure {
         let creep = this.creep;
         if (!target) {
             target = this.getRangedTarget();
@@ -302,7 +309,7 @@ export class ProtoRole {
         return null;
     }
 
-    public moveAwayFrom(target: Creep) {
+    public moveAwayFrom(target: Creep | Structure) {
         let creep = this.creep;
         let longest : RoomPosition;
         let longVal = -1;
@@ -311,12 +318,11 @@ export class ProtoRole {
             for (let y = -1; y <= 1; y++){
                 let temp = new RoomPosition(creep.pos.x + x , creep.pos.y + y, creep.room.name);
                 if ( temp.getRangeTo(badPos) >  longVal  ) {// &&
-                    //temp.lookFor<String>(LOOK_TERRAIN) && temp.lookFor<String>(LOOK_TERRAIN).length == 1 && 
-                    //(temp.lookFor<String>(LOOK_TERRAIN)[0] == "plain"  || temp.lookFor<String>(LOOK_TERRAIN)[0] == "swamp") &&
-                    //temp.lookFor<Structure>(LOOK_STRUCTURES).length === 0 ) {
-
-                    longVal = temp.getRangeTo(badPos);
-                    longest = temp;
+                    if (temp.lookFor<Number>(LOOK_TERRAIN) &&
+                        temp.lookFor<Number>(LOOK_TERRAIN)[0] !== TERRAIN_MASK_WALL){
+                        longVal = temp.getRangeTo(badPos);
+                        longest = temp;
+                    }
                 }
             }
         }
@@ -332,10 +338,10 @@ export class ProtoRole {
         }
     }
 
-    public kite(target : Creep) : boolean {
+    public kite(target : Creep | Structure) : boolean {
         let creep = this.creep;
         if (target.pos.getRangeTo(creep.pos) <= 2) {
-            this.moveAwayFrom(target);
+            this.moveAwayFrom(target)
             return true;
         }else if (target.pos.inRangeTo(creep.pos, 3)) {
             return true;

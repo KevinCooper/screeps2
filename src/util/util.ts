@@ -75,7 +75,8 @@ export function reversePath(path: PathStep[]) {
     if (targets.length == 0) {
       targets = <Container []> tempRoom.room.find<Structure>(FIND_STRUCTURES).filter((structure: StructureContainer) => {
         return ((structure.structureType == STRUCTURE_CONTAINER) &&
-               structure.store[RESOURCE_ENERGY] < structure.storeCapacity);
+               structure.store[RESOURCE_ENERGY] < structure.storeCapacity)
+               && structure.pos.lookFor<Creep>(LOOK_CREEPS).length === 0;
       });
     }
     //console.log(targets);
