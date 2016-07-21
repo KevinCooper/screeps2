@@ -38,7 +38,7 @@ function getTotalEnergy (spawn: Spawn) {
             return otherSpawn !== spawn;
         });
     }
-    if (otherSpawns && otherSpawns.length) {
+    if (otherSpawns && otherSpawns.length) { 
         for (let i in otherSpawns) {
             totalEnergy -= otherSpawns[i].energy;
         }
@@ -64,12 +64,12 @@ function spawnCreep (role: string , memory: any, spawn: Spawn) {
     let totalEnergy = getTotalEnergy (spawn);
     let body = manager.getRoleBodyParts (role, totalEnergy);
     if (!body.length || cc.calcCost(body) > totalEnergy) {
-        //console.log ("Not enough energy (currently " + totalEnergy + ") to spawn a creep of role " + role + ". Aborting...");
+        console.log ("Not enough energy (currently " + totalEnergy + ") to spawn a creep of role " + role + ". Aborting...");
         return;
     }
 
     let name = getNameByRole (spawn, role);
-    if(totalEnergy >= room.energyCapacityAvailable * .75){
+    if(totalEnergy <= room.energyCapacityAvailable){
         console.log("Trying to spawn " + role + "...");
         return spawn.createCreep (body, name, memory) == name;
     }

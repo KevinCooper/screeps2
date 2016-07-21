@@ -65,12 +65,14 @@ export class Upgrader extends ProtoRole {
                 this.rest(true);
             } else if (creep.carry.energy > 0) {
                 this.moveAndPerform(controller, creep.upgradeController);
-            } else {
+            } else if(pickup !== null && pickup) {
                 if (!creep.pos.isNearTo(pickup)) {
                     this.moveTo(pickup);
                 }
                 creep.withdraw(pickup, RESOURCE_ENERGY, creep.carryCapacity)
                 //spawn.transferEnergy(creep);
+            } else {
+                console.log("Upgrader getting null pickup!");
             }
         }
     }

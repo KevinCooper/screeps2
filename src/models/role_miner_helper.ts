@@ -25,7 +25,7 @@ export class MinerHelper extends ProtoRole {
     }
 
     public isMinerNeedingHelpers (miner: Creep) : boolean {
-        return miner.memory.role === "miner" && miner.memory.helpers.length < miner.memory.helpersNeeded;
+        return miner.memory.role === "miner" && miner.memory.helpers && miner.memory.helpers.length < miner.memory.helpersNeeded;
     }
 
     public notMe (miner: Creep): boolean {
@@ -78,7 +78,7 @@ export class MinerHelper extends ProtoRole {
     public assignSpawn() {
         let spawn: Spawn = this.getClosest(FIND_MY_SPAWNS, undefined);
         if (!spawn) {
-            return;
+            return false;
         }
         this.spawn = spawn;
     }
@@ -86,10 +86,10 @@ export class MinerHelper extends ProtoRole {
     public assignMiner() {
         let miner: Creep = this.getClosest(FIND_CREEPS, {filter : this.isMinerNeedingHelpers});
         if (!miner) {
-            return;
+            return false;
         }
         this.miner = miner;
-
+        this.creep.say("Moving to help: " + miner.name);
     }
 
     public onSpawn() {
@@ -130,6 +130,7 @@ export class MinerHelper extends ProtoRole {
     public action() {
         let creep : Creep = this.creep;
         let miner = this.miner;
+        let room = this.room;
         if (creep.memory.courier) {
             let courier = Game.getObjectById<Creep>(creep.memory.courier);
             this.moveAndTransfer(courier, false);
@@ -138,9 +139,12 @@ export class MinerHelper extends ProtoRole {
         }
 
         if (miner == null) {
-            creep.say("I see no miners to help, and thus I die");
-            this.onDeath();
-            creep.suicide();
+            creep.say("I see no miners to help!");
+            if (!this.assignMiner()) {
+                this.rest(true);
+            }
+            // this.onDeath();
+            // creep.suicide();
             return;
         }
 
@@ -188,7 +192,7 @@ export class MinerHelper extends ProtoRole {
             }
         }else {
             // Dropping off energy
-            let target: Spawn | Container | Storage | Extension | Tower = util.getDropOffPoint(creep.room);
+            let target: Spawn | Container | Storage | Extension | Tower = util.getDropOffPoint(creep.room, creep);
             if (target) {
                 if (creep.pos.isNearTo(target)) {
                     let notFull: boolean;

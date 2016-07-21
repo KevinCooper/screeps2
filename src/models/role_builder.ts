@@ -82,7 +82,7 @@ export class Builder extends ProtoRole {
             }
 
             for (let struct of structures) {
-                if ((struct.hits / struct.hitsMax) < 0.5 && struct.hits < 20000 && struct.structureType !== STRUCTURE_WALL) {
+                if ((struct.hits / struct.hitsMax) < 1.0 && struct.hits < 20000 && struct.structureType !== STRUCTURE_WALL) {
                     toRepair.push(struct);
                 }
             }

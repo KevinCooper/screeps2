@@ -2,9 +2,10 @@
 
 import {RoomManager} from "./managers/room_manager";
 import {EnergyMonitor} from "./monitor/energy_monitor";
-import {BuildingManager} from "./managers/building_manager"
+import {BuildingManager} from "./managers/building_manager";
 import sp = require("./util/spawner");
 import pr = require("./managers/perform_roles");
+
 let ROUTE_CACHE_CLEANING_INTERVAL = 10;
 
 /**
@@ -36,13 +37,13 @@ export class GameManager {
         Room.prototype._memory = function () {
             let that = this as Room;
             return that.memory as RoomMemory;
-        }
+        };
 
         // Allow us to add our own types to creep memory. See creep.d.ts 
         Creep.prototype._memory = function () {
             let that = this as Creep;
             return that.memory as CreepMemory;
-        }
+        };
 
         // When using screeps pathfinder, it does not normally take impassable buildings into account....
         Room.prototype.getCostMatrix = function (addCreeps = false) {
@@ -52,14 +53,14 @@ export class GameManager {
                     return structure.structureType !== STRUCTURE_CONTAINER &&
                         structure.structureType !== STRUCTURE_ROAD &&
                         structure.structureType !== STRUCTURE_RAMPART;
-                }
+                },
             }).map(structure => structure.pos);
             structurePos.concat(that.find<Structure>(FIND_CONSTRUCTION_SITES, {
                 filter: (constructionSite: Structure) => {
                     return constructionSite.structureType !== STRUCTURE_CONTAINER &&
                         constructionSite.structureType !== STRUCTURE_ROAD &&
                         constructionSite.structureType !== STRUCTURE_RAMPART;
-                }
+                },
             }).map(structure => structure.pos));
             if (addCreeps) {
                 structurePos.concat(that.find<Creep>(FIND_CREEPS).map(creep => creep.pos));
@@ -69,7 +70,7 @@ export class GameManager {
                 matrix.set(unwalkablePos.x, unwalkablePos.y, 255);
             }
             return matrix;
-        }
+        };
 
         //console.log("New screeps cycle.");
 
@@ -79,24 +80,24 @@ export class GameManager {
         // Loop code starts here.....
         // This is executed every tick
 
-        let tower = Game.getObjectById<Tower>('578e9a8a9cbddf1a1e4485a2');
-        if(tower) {
-            var closestDamagedStructure = tower.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax && structure.hits < 20000
+        let tower = Game.getObjectById<Tower>("578e9a8a9cbddf1a1e4485a2");
+        if (tower) {
+            let closestDamagedStructure = tower.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {
+                filter: (structure) => structure.hits < structure.hitsMax / 2 && structure.hits < 20000,
             });
-            if(closestDamagedStructure) {
+            if (closestDamagedStructure) {
                 tower.repair(closestDamagedStructure);
             }
 
-            var closestHostile = tower.pos.findClosestByRange<Creep>(FIND_HOSTILE_CREEPS);
-            if(closestHostile) {
+            let closestHostile = tower.pos.findClosestByRange<Creep>(FIND_HOSTILE_CREEPS);
+            if (closestHostile) {
                 tower.attack(closestHostile);
             }
         }
 
 
         if (Game.time % 1000 === 0 && Memory["routeCache"]) {
-            delete Memory["routeCache"]
+            delete Memory["routeCache"];
             console.log("Clearing route cache");
         }
 

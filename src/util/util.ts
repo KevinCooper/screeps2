@@ -48,20 +48,21 @@ export function reversePath(path: PathStep[]) {
    * @export
    * @returns {Structure}
    */
-  export function getDropOffPoint(room: Room): Spawn | Container | Storage | Extension | Tower {
+  export function getDropOffPoint(room: Room, creep: Creep): Spawn | Container | Storage | Extension | Tower {
     let tempRoom: myRoom = new myRoom(room);
-    let targets: Spawn[] | Container[] | Storage[] | Extension[];
+    let targets: Structure[];
     targets = <Spawn []> tempRoom.myStructures.filter((structure) => {
         return ((structure.structureType == STRUCTURE_SPAWN) &&
                (<Spawn> structure).energy < (<Spawn> structure).energyCapacity);
     });
     // If the spawn is full, we'll find any extensions/towers.
-    if (targets.length == 0) {
-      targets = <Extension []> tempRoom.myStructures.filter((structure) => {
-          return ((structure.structureType == STRUCTURE_EXTENSION)
+
+    targets = targets.concat(<Extension []> tempRoom.myStructures.filter((structure) => {
+        return ((structure.structureType == STRUCTURE_EXTENSION)
             && (<Extension>structure).energy < (<Extension>structure).energyCapacity);
-      });
-    }
+    }));
+
+    targets = _.sortBy(targets, structure => {return creep.pos.getRangeTo(structure.pos);});
 
     // Or if that's filled as well, look for towers.
     if (targets.length == 0) {
@@ -86,7 +87,7 @@ export function reversePath(path: PathStep[]) {
         return ((structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity);
       });
     }
-    return targets[0];
+    return <Spawn | Container | Storage | Extension | Tower>targets[0];
   }
 
   /**
@@ -118,6 +119,7 @@ export function reversePath(path: PathStep[]) {
         });
     }
     let test = creep.pos.findClosestByPath<Spawn | Container | Storage | Extension>(targets);
+    //console.log(test);
     return test;
   }  
 export function isDefender (creep: Creep): boolean {
