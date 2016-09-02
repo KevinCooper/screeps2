@@ -92,6 +92,14 @@ export class MinerHelper extends ProtoRole {
         this.creep.say("Moving to help: " + miner.name);
     }
 
+    public onStart(){
+        let creep: Creep = this.creep;
+        let room = this.room;
+        room._memory.info.suppliers += 1;
+        room._memory.info.supplyEnergy += creep.getActiveBodyparts(CARRY) * 2;
+        room._memory.info.minerHelpers += 1;
+    }
+
     public onSpawn() {
         let creep: Creep = this.creep;
         let room = this.room;
@@ -99,9 +107,6 @@ export class MinerHelper extends ProtoRole {
         // Because I want it to be done ASAP
         this.assignSpawn ();
         this.assignMiner ();
-        room._memory.info.suppliers += 1;
-        room._memory.info.supplyEnergy += creep.getActiveBodyparts(CARRY) * 2;
-        room._memory.info.minerHelpers += 1;
     }
 
     public onDeath() {
@@ -148,7 +153,7 @@ export class MinerHelper extends ProtoRole {
             return;
         }
 
-        if (creep.carry.energy < creep.carryCapacity) {
+        if (creep.carry.energy < creep.carryCapacity / 2) {
             if (creep.pos.isNearTo(miner)) {
                 let minerContainer = miner.pos.lookFor<Container>(LOOK_STRUCTURES);
                 if (minerContainer !== null && minerContainer[0] &&_.sum(minerContainer[0].store) > 0) {

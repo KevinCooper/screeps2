@@ -11,7 +11,7 @@ function isSpawn (structure) {
 export class Upgrader extends ProtoRole {
     constructor(creep: Creep) {
         super(creep);
-        this.baseParts = [WORK, WORK, CARRY];
+        this.baseParts = [WORK, CARRY];
         this.upgradeMove = false;
     }
 

@@ -7,9 +7,9 @@ interface Room {
 }
 
 interface RoomMemory {
-    energy?: RoomEnergyMonitorMemory;
-    info?: RoomManagerMemory;
-    building?: RoomBuildingManagerMemory
+    energy: RoomEnergyMonitorMemory;
+    info: RoomManagerMemory;
+    buildings: RoomBuildingManagerMemory
 }
 
 interface RoomBuildingManagerMemory {

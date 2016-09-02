@@ -20,6 +20,8 @@ export class myRoom {
                minerHelpers : 0,
             };
         }
+
+
     }
 
     get creeps(): Creep[] {

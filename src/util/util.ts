@@ -104,18 +104,26 @@ export function reversePath(path: PathStep[]) {
         return ((structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 0);
       });
 
-      // Or, look for containers.
+    // Or, look for containers.
     if (targets.length == 0) {
       targets = <Container []> tempRoom.room.find<Structure>(FIND_STRUCTURES).filter((structure: StructureStorage) => {
-        return ((structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > 0);
+        return ((structure.structureType == STRUCTURE_CONTAINER) && !structure.pos.lookFor<Creep>(LOOK_CREEPS).length && structure.store[RESOURCE_ENERGY] > 0);
       });
     };
+
+    // Or, look for containers.
+    if (targets.length == 0) {
+      targets = <Container []> tempRoom.room.find<Structure>(FIND_STRUCTURES).filter((structure: StructureStorage) => {
+        return ((structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] > 300);
+      });
+    };
+
 
     // Otherwise, look for Spawn.
     if (targets.length == 0) {
       targets = <Spawn []> tempRoom.myStructures.filter((structure) => {
         return ((structure.structureType == STRUCTURE_SPAWN) &&
-               (<Spawn> structure).energy > 0);
+               (<Spawn> structure).energy > 100);
         });
     }
     let test = creep.pos.findClosestByPath<Spawn | Container | Storage | Extension>(targets);

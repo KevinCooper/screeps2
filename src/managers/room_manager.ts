@@ -189,7 +189,7 @@ export class RoomManager {
     public updateNeedsHelpers() {
         let room: myRoom = this.room;
         let miners: Creep[] = room.myCreeps;
-        if (miners) {
+        if (miners && room._memory.info.minerHelpers < room._memory.info.neededMinerHelpers) {
             for (let miner of miners.filter(util.isMiner)){
                 if (!miner.memory.helpersNeeded || !miner.memory.helpers) {
                     continue;

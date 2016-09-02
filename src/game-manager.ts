@@ -80,10 +80,10 @@ export class GameManager {
         // Loop code starts here.....
         // This is executed every tick
 
-        let tower = Game.getObjectById<Tower>("578e9a8a9cbddf1a1e4485a2");
+        let tower : Tower = Game.getObjectById<Tower>("57c4c08f7ca6fb0a3da8a3b2");
         if (tower) {
             let closestDamagedStructure = tower.pos.findClosestByRange<Structure>(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax / 2 && structure.hits < 20000,
+                filter: (structure) => structure.hits < structure.hitsMax / 2 && structure.hits < 50000,
             });
             if (closestDamagedStructure) {
                 tower.repair(closestDamagedStructure);

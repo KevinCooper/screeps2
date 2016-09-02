@@ -8,16 +8,16 @@ export class BuildingManager {
     private _mem: RoomBuildingManagerMemory = null;
     constructor(room: Room) {
         this.room = new myRoom(room);
-        this._mem = this.room._memory.building;
+        this._mem = this.room._memory.buildings;
         if (this._mem == null) {
-            this.room._memory.building = {
+            this.room._memory.buildings = {
                 capturable : false,
                 captured : false,
                 enemy: false,
                 level : 0,
                 roads: false,
             };
-            this._mem = this.room._memory.building;
+            this._mem = this.room._memory.buildings;
             this.controller = this.room.room.controller;
             if (this.controller !== undefined && this.controller.my) {
                 this._mem.captured = true;
